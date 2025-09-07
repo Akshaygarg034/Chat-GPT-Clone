@@ -39,12 +39,9 @@ export default function SideBar() {
           <ModelSelection />
         </div>
 
+        <span className="mb-2 mt-8 flex bg-[#242424] h-[1.5px]"/>
+
         <div className="flex flex-col space-y-2 my-2">
-          {!chats && !error && (
-            <div className="animate-pulse text-center text-white">
-              Loading Chats...
-            </div>
-          )}
           {chats?.map((chat) => (
             <ChatRow key={chat.chatId} id={chat.chatId} />
           ))}
@@ -59,8 +56,8 @@ export default function SideBar() {
           className="hidden h-12 w-12 rounded-full cursor-pointer mx-auto mb-2 hover:opacity-50"
         />
       )}
-
-      <hr className="mb-2" />
+ 
+      <span className="mb-2 bg-[#242424] h-[1.5px]"/>
 
       <div className="mb-2">
         <a href="https://github.com/Ash1shh/ChatGPT" target="_blank">

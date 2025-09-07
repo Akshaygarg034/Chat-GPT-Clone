@@ -1,7 +1,7 @@
 // components/NewChat.tsx
 'use client'
 
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { PencilSquareIcon  } from '@heroicons/react/24/outline'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
@@ -29,7 +29,7 @@ export default function NewChat() {
       onClick={createNewChat}
       className="border-gray-700 border chatrow cursor-pointer"
     >
-      <PlusIcon className="h-4 w-4" />
+      <PencilSquareIcon className="h-4 w-4" />
       <p>New Chat</p>
     </div>
   )

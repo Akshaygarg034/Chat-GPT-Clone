@@ -67,15 +67,14 @@ export default function ChatRow({ id }: Props) {
     return (
         <Link
             href={`/chat/${id}`}
-            className={`chatrow justify-center ${active ? "bg-[#2a2b32]" : ""}`}
+            className={`chatrow gap-9 justify-center ${active ? "bg-[#242424]" : ""}`}
         >
-            <ChatBubbleLeftIcon className="h-5 w-5" />
             <p className="flex-1 hidden md:inline-flex truncate">
                 {lastMessageText}
             </p>
             <TrashIcon
                 onClick={deleteChat}
-                className="h-5 w-5 text-gray-700 hover:text-red-700 cursor-pointer"
+                className="h-5 w-5 text-gray-500 hover:text-red-700 cursor-pointer"
             />
         </Link>
     )

@@ -24,7 +24,7 @@ export default async function RootLayout({
 
             <div className='flex'>
               {/* sidebar */}
-              <div className='bg-[#202022] max-w-xs h-screen overflow-y-auto md:min-w-[20rem] hidden md:block scrollbar-thin scrollbar-track-gray-400/20 scrollbar-thumb-[#444654]/80 hover:scrollbar-thumb-[#ACACBE]'>
+              <div className='bg-[#181818] max-w-xs h-screen overflow-y-auto md:min-w-[20rem] hidden md:block scrollbar-thin scrollbar-track-gray-400/20 scrollbar-thumb-[#444654]/80 hover:scrollbar-thumb-[#ACACBE]'>
 
                 <SideBar />
               </div>
@@ -32,7 +32,7 @@ export default async function RootLayout({
               {/* client provider */}
               <ClientProvider />
 
-              <div className="bg-[#343541] flex-1">
+              <div className="bg-[#212121] flex-1">
                 {children}
               </div>
             </div>

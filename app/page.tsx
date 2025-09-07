@@ -5,15 +5,25 @@ import {
 } from "@heroicons/react/24/outline";
 import React from "react";
 import Ss from "../components/Ss";
+import Image from "next/image"
 
 function page() {
   return (
     <div className="">
-        <div className="md:hidden">
+      <div className="md:hidden">
         <Ss />
+      </div>
+      <div className="text-white flex flex-col items-center justify-center h-screen px-2 cursor-pointer">
+        <div className="flex gap-3 items-start justify-center">
+          <Image
+                src="https://res.cloudinary.com/dz1vsgxm5/image/upload/v1757192404/ChatGPTClone/icons8-chatgpt-100_l7tpts.png"
+                width={200}
+                height={200}
+                alt="logo"
+                className="h-14 w-14"
+            />
+          <h1 className="text-5xl font-bold mb-16">ChatGPT</h1>
         </div>
-      <div className="text-white flex flex-col items-center justify-center h-screen px-2">
-        <h1 className="text-5xl font-bold  mb-16">ChatGPT</h1>
 
         <div className="flex text-center space-x-4 mb-16">
           <div>
@@ -44,13 +54,13 @@ function page() {
             </div>
 
             <div className="space-y-4">
-              <p className="infotext">
+              <p className="infotext in">
                 Trained to decline inappropriate requests
               </p>
-              <p className="infotext">
+              <p className="infotext in">
                 Messages are stored in Firebase's Firestore
               </p>
-              <p className="infotext">
+              <p className="infotext in">
                 Hot Toast notifications when ChatGPT is thinking!
               </p>
             </div>
@@ -64,13 +74,13 @@ function page() {
             </div>
 
             <div className="space-y-4">
-              <p className="infotext">
+              <p className="infotext in">
                 May occasionally generate incorrect information
               </p>
-              <p className="infotext">
+              <p className="infotext in">
                 May occasionally produce harmful instructions or biased content
               </p>
-              <p className="infotext">Limited knowledge of world and events</p>
+              <p className="infotext in">Limited knowledge of world and events</p>
             </div>
           </div>
         </div>

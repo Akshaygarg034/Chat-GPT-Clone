@@ -16,7 +16,6 @@ type MessageType = {
   user: {
     _id: string
     name: string
-    avatar: string
   }
 }
 
@@ -46,10 +45,7 @@ export default async function handler(
     createdAt: new Date(),
     user: {
       _id: session.user!.email!,
-      name: session.user!.name!,
-      avatar:
-        session.user!.image! ||
-        `https://ui-avatars.com/api/?name=${session.user!.name}`,
+      name: session.user!.name!
     },
   }).save()
 
@@ -83,9 +79,7 @@ export default async function handler(
     createdAt: new Date(),
     user: {
       _id: 'ChatGPT',
-      name: 'ChatGPT',
-      avatar:
-        'https://static.vecteezy.com/system/resources/previews/021/059/827/non_2x/chatgpt-logo-chat-gpt-icon-on-white-background-free-vector.jpg',
+      name: 'ChatGPT'
     },
   }).save()
 
@@ -97,8 +91,7 @@ export default async function handler(
     createdAt: botDoc.createdAt,
     user: {
       _id: botDoc.user._id,
-      name: botDoc.user.name,
-      avatar: botDoc.user.avatar,
+      name: botDoc.user.name
     },
   }
 
