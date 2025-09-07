@@ -13,4 +13,23 @@
         @apply hover:bg-[#202123]
     } 
 }
-    
+
+/* For Webkit browsers */
+.chat-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #d3d1d1;
+  border-radius: 3px;
+}
+
+/* For Firefox */
+.chat-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e2e2 #2d2d2d;
+}

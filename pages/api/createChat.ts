@@ -22,12 +22,12 @@ export default async function handler(
   }
 
   await dbConnect()
-  const chatId = nanoid()
-  await new Chat({
-    chatId,
+  const newChat = new Chat({
+    chatId: nanoid(),          // generate required chatId
     userEmail: session.user!.email!,
     createdAt: new Date(),
-  }).save()
+  })
 
-  res.status(200).json({ chatId })
+  await newChat.save()
+  res.status(200).json({ chatId: newChat._id.toString() })
 }

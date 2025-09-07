@@ -32,16 +32,16 @@ export default function ChatRow({ id }: Props) {
     }, [pathname, id])
 
     // Fetch messages for this chat
-    const fetcher = (key: [string, string]) => {
-        const [url, chatId] = key
-        return fetch(url, {
+    const fetcher = async (key: [string, string]) => {
+        const [url, chatId] = key;
+        const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ chatId }),
-        })
-            .then(res => res.json())
-            .then((data: { messages: MessageType[] }) => data.messages)
-    }
+        });
+        const data = await response.json();
+        return data.messages;
+    };
 
     const shouldFetch = Boolean(session && id)
 
@@ -63,6 +63,8 @@ export default function ChatRow({ id }: Props) {
     const lastMessageText = messages?.length
         ? messages[messages.length - 1].text
         : "New Chat"
+
+
 
     return (
         <Link

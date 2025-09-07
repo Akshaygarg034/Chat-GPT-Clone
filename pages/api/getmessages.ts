@@ -31,37 +31,48 @@ export default async function handler(
   res: NextApiResponse<Data>
 ) {
   if (req.method !== 'POST') {
+    console.log("Unsupported HTTP method:", req.method);
     return res.status(405).end()
   }
 
   const session = await getServerSession(req, res, authOptions)
-  if (!session) return res.status(401).end()
+  if (!session) {
+    console.log("No session found: Unauthorized request.");
+    return res.status(401).end()
+  }
 
   const { chatId } = req.body
-  if (!chatId) return res.status(400).end()
 
-  await dbConnect()
+  if (!chatId) {
+    console.log("No chatId provided in request body.");
+    return res.status(400).end()
+  }
 
-  // Fetch and cast to MessageDoc[]
-  const docs = (await Message.find({
-    userEmail: session.user!.email!,
-    chatId,
-  })
-    .sort({ createdAt: 1 })
-    .lean()
-    .exec()) as unknown as MessageDoc[]
+  try {
+    // Fetch messages filtering by userEmail and chatId
+    const docs = (await Message.find({
+      userEmail: session.user!.email!,
+      chatId,
+    })
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec()) as unknown as MessageDoc[]
 
-  const messages: MessageType[] = docs.map((doc) => ({
-    _id: doc._id.toString(),
-    userEmail: doc.userEmail,
-    chatId: doc.chatId,
-    text: doc.text,
-    createdAt: doc.createdAt,
-    user: {
-      _id: doc.user._id,
-      name: doc.user.name
-    },
-  }))
+    const messages: MessageType[] = docs.map((doc) => ({
+      _id: doc._id.toString(),
+      userEmail: doc.userEmail,
+      chatId: doc.chatId,
+      text: doc.text,
+      createdAt: doc.createdAt,
+      user: {
+        _id: doc.user._id,
+        name: doc.user.name
+      },
+    }))
 
-  res.status(200).json({ messages })
+    return res.status(200).json({ messages })
+  } catch (error) {
+    console.error("Error fetching messages from DB:", error)
+    return res.status(500).end()
+  }
 }
