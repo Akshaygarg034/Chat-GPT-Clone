@@ -1,7 +1,8 @@
 'use client'
 
 import TypeIt from 'typeit-react'
-import { PencilSquareIcon } from '@heroicons/react/24/outline'
+import { PencilSquareIcon, ClipboardIcon, CheckIcon } from '@heroicons/react/24/outline'
+import { useState } from 'react'
 
 type MessageType = {
   _id: string
@@ -30,6 +31,14 @@ export default function Message({
   onEdit,
 }: Props) {
   const isChatGPT = message.user.name === 'ChatGPT'
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    })
+  }
 
   return (
     <div className="py-3 text-white">
@@ -45,18 +54,34 @@ export default function Message({
               message.text
             )}
           </p>
-          
-          <div className='absolute h-[200%] w-[100%] top-0 left-0'></div>
-          {/* Edit button, only for user's own messages, visible on hover */}
+
+          <div className="absolute h-[200%] w-[100%] top-0 left-0"></div>
+
+          {/* Edit button, only visible for user's own messages on hover */}
           {canEdit && !isChatGPT && (
-              <button
-                type="button"
-                onClick={onEdit}
-                className="invisible group-hover:visible absolute -bottom-6 left-3 flex items-center gap-1 text-xs text-gray-300 hover:text-white"
-              >
-                <PencilSquareIcon className="h-4 w-4" />
-              </button>
+            <button
+              type="button"
+              onClick={onEdit}
+              className="invisible group-hover:visible absolute left-3 -bottom-6 flex items-center text-xs text-gray-300 hover:text-white"
+              title="Edit message"
+            >
+              <PencilSquareIcon className="h-4 w-4" />
+            </button>
           )}
+
+          {/* Copy icon, toggles to check icon on click */}
+          <button
+            type="button"
+            onClick={handleCopy}
+            className={`${!isChatGPT && 'invisible'} group-hover:visible absolute ${isChatGPT ? 'left-4' : ' left-12'} -bottom-6 flex items-center text-gray-300 hover:text-white`}
+            title={copied ? 'Copied!' : 'Copy message'}
+          >
+            {copied ? (
+              <CheckIcon className="h-4 w-4" />
+            ) : (
+              <ClipboardIcon className="h-4 w-4" />
+            )}
+          </button>
         </div>
       </div>
     </div>
