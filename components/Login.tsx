@@ -30,7 +30,7 @@ export default function Login() {
             <div className="relative mb-4">
               <Image
                 src="https://res.cloudinary.com/dz1vsgxm5/image/upload/v1757192404/ChatGPTClone/icons8-chatgpt-100_l7tpts.png"
-                alt="App logo"
+                alt="ChatGPT logo"
                 width={88}
                 height={88}
                 priority

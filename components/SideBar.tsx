@@ -33,6 +33,15 @@ export default function SideBar() {
 
   return (
     <div className="p-2 flex flex-col h-screen">
+      {/* ChatGPT Logo + Name */}
+      <a className="flex items-center gap-2 px-2 py-3 mb-4" href="/">
+        <img
+          src="https://res.cloudinary.com/dz1vsgxm5/image/upload/v1757192404/ChatGPTClone/icons8-chatgpt-100_l7tpts.png"
+          alt="ChatGPT Logo"
+          className="h-7 w-7 object-contain"
+        />
+        <p className="text-white font-semibold text-lg">ChatGPT</p>
+      </a>
       <div className="flex-1">
         <NewChat />
         <div className="hidden sm:inline">
