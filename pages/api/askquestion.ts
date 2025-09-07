@@ -25,13 +25,6 @@ type Data = {
   botMessage: MessageType
 }
 
-// Optional: map legacy model keys from your UI to Vercel AI SDK models
-function mapModel(model: string) {
-  // Example mappings; adjust to your models
-  if (model === 'text-davinci-003') return 'gpt-3.5-turbo-instruct'
-  return model // pass-through if already a supported model id
-}
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
@@ -65,17 +58,13 @@ export default async function handler(
     apiKey: process.env.OPENAI_API_KEY!, // ensure this is set in env
   })
 
-  const modelId = mapModel(model || 'gpt-3.5-turbo-instruct')
-
   // Using streamText to generate a completion; we’ll read the full text at the end.
   const { textStream } = await streamText({
-    model: openai(modelId),
+    model: openai(model),
     prompt,
     temperature: 1,
     maxOutputTokens: 512,
-    topP: 1,
-    frequencyPenalty: 0,
-    presencePenalty: 0,
+    topP: 1
   })
 
   let fullText = ''

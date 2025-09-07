@@ -32,6 +32,7 @@ export default function Chat({ chatId }: Props) {
   // Keep ref to previous messages length so we detect new messages
   const prevMessagesLengthRef = useRef<number>(0)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!session || !chatId) return
 

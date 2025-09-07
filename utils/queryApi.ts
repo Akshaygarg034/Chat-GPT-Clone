@@ -16,9 +16,7 @@ const query = async (prompt: string, chatId: string, model: string) => {
     prompt,
     temperature: 1,
     maxOutputTokens: 512,
-    topP: 1,
-    frequencyPenalty: 0,
-    presencePenalty: 0,
+    topP: 1
     })
 
     let fullText = ''
