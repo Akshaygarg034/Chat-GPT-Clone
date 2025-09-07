@@ -11,7 +11,7 @@ type MessageType = {
   chatId: string
   text: string
   createdAt: Date
-  user: { _id: string; name: string; avatar: string }
+  user: { _id: string; name: string; }
 }
 
 // This matches the shape returned by .lean()
@@ -21,7 +21,7 @@ interface MessageDoc {
   chatId: string
   text: string
   createdAt: Date
-  user: { _id: string; name: string; avatar: string }
+  user: { _id: string; name: string }
 }
 
 type Data = { messages: MessageType[] }
@@ -59,8 +59,7 @@ export default async function handler(
     createdAt: doc.createdAt,
     user: {
       _id: doc.user._id,
-      name: doc.user.name,
-      avatar: doc.user.avatar,
+      name: doc.user.name
     },
   }))
 

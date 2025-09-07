@@ -1,31 +1,17 @@
-// utils/queryApi.ts
-import { streamText } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+
+const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 const query = async (prompt: string, chatId: string, model: string) => {
-  const openai = createOpenAI({
-    apiKey: process.env.OPENAI_API_KEY!,
-  })
-
-  // Optional mapping if you keep legacy names in UI
-  const chosenModel = model === 'text-davinci-003' ? 'gpt-3.5-turbo-instruct' : model
-
+  const chosenModel = model === 'gemini-1.5-flash' || model === 'gemini-1.5-pro' ? model : 'gemini-1.5-flash'
   try {
-    const { textStream } = await streamText({
-    model: openai(chosenModel),
-    prompt,
-    temperature: 1,
-    maxOutputTokens: 512,
-    topP: 1
-    })
+    const genModel = gemini.getGenerativeModel({ model: chosenModel })
 
-    let fullText = ''
-    for await (const chunk of textStream) {
-      fullText += chunk
-    }
-    return fullText?.trim() || 'I was unable to find an answer for that!'
+    const result = await genModel.generateContent(prompt)
+    const fullText = result.response.text() || 'I was unable to find an answer for that!'
+    return fullText.trim()
   } catch (err: any) {
-    return `ChatGPT was unable to find an answer for that! (Error: ${err?.message || 'unknown'})`
+    return `Gemini was unable to find an answer for that! (Error: ${err?.message || 'unknown'})`
   }
 }
 

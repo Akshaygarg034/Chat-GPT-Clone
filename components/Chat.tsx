@@ -54,7 +54,7 @@ export default function Chat({ chatId }: Props) {
         // Detect if a new bot message arrived
         if (
           sorted.length > prevMessagesLengthRef.current && // messages count increased
-          sorted[sorted.length - 1].user._id === 'ChatGPT'  // last message is bot message
+          sorted[sorted.length - 1].user._id === 'Gemini'  // last message is bot message
         ) {
           setNewBotMessageId(sorted[sorted.length - 1]._id)
         } else {
@@ -71,7 +71,7 @@ export default function Chat({ chatId }: Props) {
   function handleUserMessage(message: MessageType) {
     setMessages((prev) => [...prev, message])
     // If message is from bot, set newBotMessageId to trigger animation
-    if (message.user._id === 'ChatGPT') {
+    if (message.user._id === 'Gemini') {
       setNewBotMessageId(message._id)
     }
   }

@@ -1,11 +1,9 @@
-// pages/api/askquestion.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from './auth/[...nextauth]'
 import dbConnect from '../../utils/dbConnect'
 import Message from '../../models/Message'
-import { streamText } from 'ai'
-import { createOpenAI } from '@ai-sdk/openai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
 type MessageType = {
   _id: string
@@ -32,7 +30,7 @@ export default async function handler(
   const session = await getServerSession(req, res, authOptions)
   if (!session) return res.status(401).end()
 
-  const { prompt, chatId, model } = req.body as { prompt: string; chatId: string; model: string }
+  const { prompt, chatId } = req.body as { prompt: string; chatId: string }
   if (!prompt || !chatId) return res.status(400).end()
 
   await dbConnect()
@@ -49,37 +47,26 @@ export default async function handler(
     },
   }).save()
 
-  // 2) Call Vercel AI SDK for completion
-  const openai = createOpenAI({
-    apiKey: process.env.OPENAI_API_KEY!, // ensure this is set in env
-  })
+  // 2) Initialize Gemini client
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
-  // Using streamText to generate a completion; we’ll read the full text at the end.
-  const { textStream } = await streamText({
-    model: openai(model),
-    prompt,
-    temperature: 1,
-    maxOutputTokens: 512,
-    topP: 1
-  })
+  // Choose model (flash = cheaper/faster, pro = better reasoning)
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
-  let fullText = ''
-  for await (const chunk of textStream) {
-    fullText += chunk
-  }
-
+  // 3) Generate response
+  const result = await model.generateContent(prompt)
   const finalText =
-    fullText?.trim() || 'I was unable to find an answer for that!'
+    result.response.text() || 'I was unable to find an answer for that!'
 
-  // 3) Save bot response
+  // 4) Save bot response
   const botDoc = await new Message({
     userEmail: session.user!.email!,
     chatId,
     text: finalText,
     createdAt: new Date(),
     user: {
-      _id: 'ChatGPT',
-      name: 'ChatGPT'
+      _id: 'Gemini',
+      name: 'Gemini'
     },
   }).save()
 

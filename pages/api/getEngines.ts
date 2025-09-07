@@ -1,4 +1,3 @@
-// pages/api/models.ts
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 type Option = {
@@ -10,6 +9,11 @@ type Data = {
   modelOptions: Option[]
 }
 
+const freeModels: Option[] = [
+  { value: 'gemini-1.5-flash', label: 'Google Gemini 1.5 Flash' }
+  // Add more known free or public models here as needed
+]
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
@@ -18,31 +22,8 @@ export default async function handler(
     return res.status(405).end()
   }
 
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    return res.status(500).end()
-  }
+  // Optionally, you might validate API keys or user auth here
 
-  // Fetch model list directly via OpenAI REST API
-  const response = await fetch('https://api.openai.com/v1/models', {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-  })
-
-  if (!response.ok) {
-    return res.status(response.status).end()
-  }
-
-  const payload = await response.json()
-  const models: { id: string }[] = payload.data || []
-
-  const modelOptions: Option[] = models.map((m) => ({
-    value: m.id,
-    label: m.id,
-  }))
-
-  res.status(200).json({ modelOptions })
+  // Return only the predefined list of free models
+  res.status(200).json({ modelOptions: freeModels })
 }
-

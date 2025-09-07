@@ -1,9 +1,10 @@
 // utils/chatgpt.ts
-import { createOpenAI } from '@ai-sdk/openai'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
-// Initialize the Vercel AI SDK OpenAI provider with your API key
-const openai = createOpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-})
+const geminiClient = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
-export default openai
+export function getGeminiModel(modelId: string = 'gemini-1.5-flash') {
+  return geminiClient.getGenerativeModel({ model: modelId })
+}
+
+export default geminiClient

@@ -30,8 +30,10 @@ export default function Message({
   canEdit = false,
   onEdit,
 }: Props) {
-  const isChatGPT = message.user.name === 'ChatGPT'
+  const isChatBot = message.user.name === 'Gemini'
   const [copied, setCopied] = useState(false)
+  const imageRegex = /\[Image:\s*(https?:\/\/[^\]]+)\]/i
+  const imageMatch = message.text.match(imageRegex)
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.text).then(() => {
@@ -42,23 +44,32 @@ export default function Message({
 
   return (
     <div className="py-3 text-white">
-      <div className={`relative flex max-w-3xl mx-auto ${!isChatGPT ? 'justify-end' : ''}`}>
-        <div className={`relative group flex items-start gap-3 px-5 py-2 rounded-3xl ${!isChatGPT ? 'bg-[#303030]' : ''}`}>
-          {/* Bubble text */}
-          <p className="text-base">
-            {isChatGPT && isNewBotMessage ? (
-              <TypeIt
-                options={{ strings: [message.text], speed: 20, waitUntilVisible: true }}
+      <div className={`relative flex max-w-3xl my-4 mx-auto ${!isChatBot ? 'justify-end' : ''}`}>
+        <div className={`relative group ${!isChatBot ? 'max-w-[80%]' : 'w-[100%]'} flex flex-col items-start gap-3 px-5 py-2 rounded-3xl ${!isChatBot ? 'bg-[#303030]' : ''}`}>
+
+          {imageMatch && !isChatBot && canEdit ? (
+            <>
+              <img
+                src={imageMatch[1]}
+                alt="query image"
+                className="max-h-56 rounded-md"
               />
-            ) : (
-              message.text
-            )}
-          </p>
+              {/* Optionally show text without image markdown */}
+              <p className="text-base mt-2">{message.text.replace(imageRegex, '').trim()}</p>
+            </>
+          ) : isChatBot && isNewBotMessage ? (
+            <TypeIt
+              options={{ strings: [message.text], speed: 20, waitUntilVisible: true }}
+            />
+          ) : (
+            <p className="text-base">{message.text}</p>
+          )}
+
 
           <div className="absolute h-[200%] w-[100%] top-0 left-0"></div>
 
           {/* Edit button, only visible for user's own messages on hover */}
-          {canEdit && !isChatGPT && (
+          {canEdit && !isChatBot && (
             <button
               type="button"
               onClick={onEdit}
@@ -73,7 +84,7 @@ export default function Message({
           <button
             type="button"
             onClick={handleCopy}
-            className={`${!isChatGPT && 'invisible'} group-hover:visible absolute ${isChatGPT ? 'left-4' : ' left-12'} -bottom-6 flex items-center text-gray-300 hover:text-white`}
+            className={`${!isChatBot && 'invisible'} group-hover:visible absolute ${isChatBot ? 'left-4' : ' left-12'} -bottom-6 flex items-center text-gray-300 hover:text-white`}
             title={copied ? 'Copied!' : 'Copy message'}
           >
             {copied ? (
