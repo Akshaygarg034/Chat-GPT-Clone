@@ -30,7 +30,7 @@ export default async function handler(
   const session = await getServerSession(req, res, authOptions)
   if (!session) return res.status(401).end()
 
-  const { prompt, chatId } = req.body as { prompt: string; chatId: string }
+  const { prompt, chatId, model  } = req.body as { prompt: string; chatId: string; model?: string }
   if (!prompt || !chatId) return res.status(400).end()
 
   await dbConnect()
@@ -50,11 +50,13 @@ export default async function handler(
   // 2) Initialize Gemini client
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
-  // Choose model (flash = cheaper/faster, pro = better reasoning)
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+  const chosenModel = 'gemini-2.5-flash'
+  console.log('Using model:', chosenModel)
+
+  const generativeModel = genAI.getGenerativeModel({ model: chosenModel })
 
   // 3) Generate response
-  const result = await model.generateContent(prompt)
+  const result = await generativeModel.generateContent(prompt)
   const finalText =
     result.response.text() || 'I was unable to find an answer for that!'
 
