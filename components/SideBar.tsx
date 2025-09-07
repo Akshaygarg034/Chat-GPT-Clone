@@ -39,7 +39,7 @@ export default function SideBar() {
           <ModelSelection />
         </div>
 
-        <span className="mb-2 mt-8 flex bg-[#242424] h-[1.5px]"/>
+        <span className="mb-2 mt-8 flex bg-[#242424] h-[1.5px]" />
 
         <div className="flex flex-col space-y-2 my-2">
           {chats?.map((chat) => (
@@ -56,22 +56,28 @@ export default function SideBar() {
           className="hidden h-12 w-12 rounded-full cursor-pointer mx-auto mb-2 hover:opacity-50"
         />
       )}
- 
-      <span className="mb-2 bg-[#242424] h-[1.5px]"/>
+
+      <span className="mb-2 bg-[#242424] h-[1.5px]" />
 
       <div className="mb-2">
-        <a href="https://github.com/Ash1shh/ChatGPT" target="_blank">
-          <div className="chatrow justify-start">
-            <GiftIcon className="h-5 w-5" />
-            <p>Source Code</p>
+        {session && (
+          <div className="chatrow justify-start select-none">
+            {session.user?.image ? (
+              <img
+                src={session.user.image}
+                alt={session.user?.name || 'User avatar'}
+                className="h-6 w-6 rounded-full object-cover"
+              />
+            ) : (
+              <div className="h-6 w-6 rounded-full bg-gray-600 flex items-center justify-center text-[10px] font-semibold">
+                {(session.user?.name || session.user?.email || 'U')
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </div>
+            )}
+            <p className="truncate">{session.user?.name || session.user?.email}</p>
           </div>
-        </a>
-        <a href="https://github.com/Ash1shh/ChatGPT/issues" target="_blank">
-          <div className="chatrow justify-start">
-            <ArrowTopRightOnSquareIcon className="h-5 w-5" />
-            <p>Updates & FAQ</p>
-          </div>
-        </a>
+        )}
         <div
           onClick={() => signOut()}
           className="chatrow justify-start cursor-pointer"

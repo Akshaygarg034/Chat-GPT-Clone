@@ -8,8 +8,7 @@ const MessageSchema = new Schema({
   createdAt: Date,
   user: {
     _id: String,
-    name: String,
-    avatar: String
+    name: String
   }
 })
 

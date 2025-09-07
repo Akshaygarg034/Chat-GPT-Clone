@@ -16,7 +16,6 @@ type MessageType = {
   user: {
     _id: string
     name: string
-    avatar: string
   }
 }
 
@@ -28,6 +27,8 @@ export default function Chat({ chatId }: Props) {
   const [loading, setLoading] = useState<boolean>(true)
   // Track the ID of the last new bot message to animate typewriter for only that message
   const [newBotMessageId, setNewBotMessageId] = useState<string | null>(null)
+
+  const [promptValue, setPromptValue] = useState<string>('')       // controlled input
 
   // Keep ref to previous messages length so we detect new messages
   const prevMessagesLengthRef = useRef<number>(0)
@@ -75,16 +76,14 @@ export default function Chat({ chatId }: Props) {
     }
   }
 
+  function handleEditRequest(message: MessageType) {
+    setPromptValue(message.text)
+  }
+
   return (
     <>
       <ScrollToBottom className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-track-gray-400/20 scrollbar-thumb-[#444654]/80 hover:scrollbar-thumb-[#ACACBE]">
         {loading && <p className="mt-10 text-center text-white">Loading messages…</p>}
-
-        {!loading && messages.length === 0 && (
-          <>
-            <p className="mt-10 text-center text-white">What can I help with?</p>
-          </>
-        )}
 
         {!loading &&
           messages.map((msg, idx) => (
@@ -93,10 +92,32 @@ export default function Chat({ chatId }: Props) {
               message={{ ...msg, createdAt: new Date(msg.createdAt) }}
               isLast={idx === messages.length - 1}
               isNewBotMessage={msg._id === newBotMessageId}
+              canEdit={session?.user?.email === msg.userEmail}
+              onEdit={() => handleEditRequest(msg)}
             />
           ))}
       </ScrollToBottom>
-      <ChatInput chatId={chatId} onMessageSent={handleUserMessage} />
+      {!loading && messages.length === 0 ? (
+        <div className='h-[100%] w-100 flex flex-col items-center justify-center'>
+          <p className="text-center text-3xl text-white">What can I help with?</p>
+          <ChatInput
+            chatId={chatId}
+            messages={messages}
+            onMessageSent={handleUserMessage}
+            promptValue={promptValue}
+            setPromptValue={setPromptValue}
+          />
+        </div>
+      ) :
+        (
+          <ChatInput
+            chatId={chatId}
+            messages={messages}
+            onMessageSent={handleUserMessage}
+            promptValue={promptValue}
+            setPromptValue={setPromptValue}
+          />
+        )}
     </>
   )
 }

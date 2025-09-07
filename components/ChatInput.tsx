@@ -1,6 +1,6 @@
 'use client'
 
-import { PaperAirplaneIcon } from '@heroicons/react/24/outline'
+import { ArrowUpIcon } from "@heroicons/react/24/outline";
 import { useSession } from 'next-auth/react'
 import { FormEvent, useState } from 'react'
 import { toast } from 'react-hot-toast'
@@ -8,22 +8,35 @@ import useSWR from 'swr'
 import dynamic from 'next/dynamic'
 const ModelSelection = dynamic(() => import('./ModelSelection'), { ssr: false })
 
-type Props = {
+type MessageType = {
+    _id: string
+    userEmail: string
     chatId: string
-    onMessageSent: (message: any) => void
+    text: string
+    createdAt: string | Date
+    user: { _id: string; name: string; }
 }
 
-export default function ChatInput({ chatId, onMessageSent }: Props) {
-    const [prompt, setPrompt] = useState<string>('')
+type Props = {
+    chatId: string
+    messages?: MessageType[]
+    onMessageSent: (message: any) => void
+    promptValue: string
+    setPromptValue: (v: string) => void
+}
+
+export default function ChatInput({ chatId, messages, onMessageSent, promptValue, setPromptValue }: Props) {
     const { data: session } = useSession()
     const { data: model } = useSWR('model', { fallbackData: 'text-davinci-003' })
 
     const sendMessage = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (!prompt || !session) return
+        if (!promptValue || !session) return
 
-        const input = prompt.trim()
-        setPrompt('')
+        const input = promptValue.trim()
+
+        // New message flow
+        setPromptValue('')
 
         // Create temporary user message for optimistic UI
         const userMessage = {
@@ -35,12 +48,8 @@ export default function ChatInput({ chatId, onMessageSent }: Props) {
             user: {
                 _id: session.user!.email!,
                 name: session.user!.name!,
-                avatar:
-                    session.user!.image! || `https://ui-avatars.com/api/?name=${session.user!.name}`,
             },
         }
-
-        // Optimistic UI update
         onMessageSent(userMessage)
 
         const res = await fetch('/api/askquestion', {
@@ -49,10 +58,13 @@ export default function ChatInput({ chatId, onMessageSent }: Props) {
             body: JSON.stringify({ prompt: input, chatId, model }),
         })
 
+        toast.loading('ChatGPT is thinking...', { id: 'thinking' })
+
         if (res.ok) {
             const data = await res.json()
             if (data.botMessage) {
                 // Immediately add bot message and trigger animation
+                toast.dismiss('thinking')
                 onMessageSent({
                     ...data.botMessage,
                     createdAt: data.botMessage.createdAt || new Date().toISOString(),
@@ -64,29 +76,31 @@ export default function ChatInput({ chatId, onMessageSent }: Props) {
     }
 
     return (
-        <div className="flex flex-col p-4 md:p-0 items-center">
-            <div className="bg-[#41414F] text-gray-400 rounded-3xl text-sm lg:max-w-2xl w-[100%] mt-10 mb-3">
+        <div className="flex flex-col p-4 md:p-0 items-center w-[100%]">
+            <div className="bg-[#303030] text-[#ffffff] rounded-3xl text-md lg:max-w-3xl w-[100%] mt-10 mb-3">
                 <form onSubmit={sendMessage} className="p-3 px-5 space-x-5 flex">
                     <input
                         type="text"
-                        className="bg-transparent focus:outline-none flex-1 disabled:cursor-not-allowed disabled:text-gray-300"
+                        className="bg-transparent focus:outline-none flex-1 disabled:cursor-not-allowed disabled:text-gray-300 placeholder-[#afafaf]"
                         placeholder="Ask anything"
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
+                        value={promptValue}
+                        onChange={(e) => setPromptValue(e.target.value)}
                         disabled={!session}
                     />
                     <button
                         type="submit"
-                        className="hover:bg-[#2a2b32] text-white font-bold px-3 py-2 rounded disabled:bg-gray-300/90 disabled:cursor-not-allowed"
-                        disabled={!prompt || !session}
+                        className="bg-[#ffffff] text-black p-2 rounded-full disabled:bg-[#858585]"
+                        disabled={!promptValue || !session}
                     >
-                        <PaperAirplaneIcon className="h-4 w-4 -rotate-45" />
+                        <ArrowUpIcon className="h-4 w-4 font-bold" />
                     </button>
                 </form>
             </div>
-            <h1 className="w-full text-center text-xs mb-5 text-[#7F8186] font-semibold">
-                ChatGPT Apr 1 Version. Free Research Preview. ChatGPT may produce inaccurate information about people, places, or facts.
-            </h1>
+            {(messages?.length ?? 0) !== 0 && (
+                <h1 className="w-full text-center text-xs mb-5 text-white">
+                    ChatGPT can make mistakes. Check important info. See <span className="underline">Cookie Preferences.</span>
+                </h1>
+            )}
         </div>
     )
 }
