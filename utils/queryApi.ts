@@ -1,18 +1,34 @@
-import openai from "./chatgpt";
+// utils/queryApi.ts
+import { streamText } from 'ai'
+import { createOpenAI } from '@ai-sdk/openai'
 
 const query = async (prompt: string, chatId: string, model: string) => {
-    const res = await openai.createCompletion({
-        model,
-        prompt,
-        temperature: 1,
-        max_tokens: 512,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-    }).then(res => res.data.choices[0].text).catch(err => `ChatGPT was unable to find an answer for that! (Error: ${err.message})`)
+  const openai = createOpenAI({
+    apiKey: process.env.OPENAI_API_KEY!,
+  })
 
+  // Optional mapping if you keep legacy names in UI
+  const chosenModel = model === 'text-davinci-003' ? 'gpt-3.5-turbo-instruct' : model
 
-    return res
+  try {
+    const { textStream } = await streamText({
+    model: openai(chosenModel),
+    prompt,
+    temperature: 1,
+    maxOutputTokens: 512,
+    topP: 1,
+    frequencyPenalty: 0,
+    presencePenalty: 0,
+    })
+
+    let fullText = ''
+    for await (const chunk of textStream) {
+      fullText += chunk
+    }
+    return fullText?.trim() || 'I was unable to find an answer for that!'
+  } catch (err: any) {
+    return `ChatGPT was unable to find an answer for that! (Error: ${err?.message || 'unknown'})`
+  }
 }
 
 export default query

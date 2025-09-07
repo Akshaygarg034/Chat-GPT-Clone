@@ -3,7 +3,7 @@ export default function Head() {
     <>
       <title>ChatGPT</title>
       <meta content="width=device-width, initial-scale=1" name="viewport" />
-      <link rel="icon" href="https://user-images.githubusercontent.com/87669361/217634637-85b4f9e6-9579-4d10-8ee6-39e124c3fe46.png" />
+      <link rel="icon" href="https://res.cloudinary.com/dz1vsgxm5/image/upload/v1757192404/ChatGPTClone/icons8-chatgpt-100_l7tpts.png" />
     </>
   )
 }

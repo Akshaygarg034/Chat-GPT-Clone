@@ -1,9 +1,9 @@
-import { Configuration, OpenAIApi } from 'openai'
+// utils/chatgpt.ts
+import { createOpenAI } from '@ai-sdk/openai'
 
-const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
+// Initialize the Vercel AI SDK OpenAI provider with your API key
+const openai = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
 })
-
-const openai = new OpenAIApi(configuration)
 
 export default openai

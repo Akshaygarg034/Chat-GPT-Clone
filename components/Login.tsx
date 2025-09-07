@@ -8,7 +8,7 @@ const Login = () => {
 
         <div className="bg-[#353541] h-screen flex flex-col items-center justify-center text-center">
             <Image
-                src="https://user-images.githubusercontent.com/87669361/217634637-85b4f9e6-9579-4d10-8ee6-39e124c3fe46.png"
+                src="https://res.cloudinary.com/dz1vsgxm5/image/upload/v1757192404/ChatGPTClone/icons8-chatgpt-100_l7tpts.png"
                 width={300}
                 height={300}
                 alt="logo"

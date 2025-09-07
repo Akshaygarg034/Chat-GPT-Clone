@@ -4,7 +4,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from './auth/[...nextauth]'
 import dbConnect from '../../utils/dbConnect'
 import Message from '../../models/Message'
-import query from '../../utils/queryApi'
+import { streamText } from 'ai'
+import { createOpenAI } from '@ai-sdk/openai'
 
 type MessageType = {
   _id: string
@@ -24,6 +25,13 @@ type Data = {
   botMessage: MessageType
 }
 
+// Optional: map legacy model keys from your UI to Vercel AI SDK models
+function mapModel(model: string) {
+  // Example mappings; adjust to your models
+  if (model === 'text-davinci-003') return 'gpt-3.5-turbo-instruct'
+  return model // pass-through if already a supported model id
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
@@ -32,12 +40,12 @@ export default async function handler(
   const session = await getServerSession(req, res, authOptions)
   if (!session) return res.status(401).end()
 
-  const { prompt, chatId, model } = req.body
+  const { prompt, chatId, model } = req.body as { prompt: string; chatId: string; model: string }
   if (!prompt || !chatId) return res.status(400).end()
 
   await dbConnect()
 
-  // 1. Save the user's message
+  // 1) Save user's message
   await new Message({
     userEmail: session.user!.email!,
     chatId,
@@ -46,27 +54,64 @@ export default async function handler(
     user: {
       _id: session.user!.email!,
       name: session.user!.name!,
-      avatar: session.user!.image! || `https://ui-avatars.com/api/?name=${session.user!.name}`,
+      avatar:
+        session.user!.image! ||
+        `https://ui-avatars.com/api/?name=${session.user!.name}`,
     },
   }).save()
 
-  // 2. Query OpenAI for the bot reply
-  const response = await query(prompt, chatId, model)
+  // 2) Call Vercel AI SDK for completion
+  const openai = createOpenAI({
+    apiKey: process.env.OPENAI_API_KEY!, // ensure this is set in env
+  })
 
-  // 3. Save the ChatGPT bot response
-  const botMessage = await new Message({
+  const modelId = mapModel(model || 'gpt-3.5-turbo-instruct')
+
+  // Using streamText to generate a completion; we’ll read the full text at the end.
+  const { textStream } = await streamText({
+    model: openai(modelId),
+    prompt,
+    temperature: 1,
+    maxOutputTokens: 512,
+    topP: 1,
+    frequencyPenalty: 0,
+    presencePenalty: 0,
+  })
+
+  let fullText = ''
+  for await (const chunk of textStream) {
+    fullText += chunk
+  }
+
+  const finalText =
+    fullText?.trim() || 'I was unable to find an answer for that!'
+
+  // 3) Save bot response
+  const botDoc = await new Message({
     userEmail: session.user!.email!,
     chatId,
-    text: response || "I was unable to find an answer for that!",
+    text: finalText,
     createdAt: new Date(),
     user: {
       _id: 'ChatGPT',
       name: 'ChatGPT',
       avatar:
-        'https://user-images.githubusercontent.com/87669361/217633335-4989329d-ed9f-47e0-95af-e24bca141fe2.jpg',
+        'https://static.vecteezy.com/system/resources/previews/021/059/827/non_2x/chatgpt-logo-chat-gpt-icon-on-white-background-free-vector.jpg',
     },
   }).save()
 
-  // 4. Return the bot's answer text
+  const botMessage: MessageType = {
+    _id: botDoc._id.toString(),
+    userEmail: botDoc.userEmail,
+    chatId: botDoc.chatId,
+    text: botDoc.text,
+    createdAt: botDoc.createdAt,
+    user: {
+      _id: botDoc.user._id,
+      name: botDoc.user.name,
+      avatar: botDoc.user.avatar,
+    },
+  }
+
   res.status(200).json({ answer: botMessage.text, botMessage })
 }

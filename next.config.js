@@ -2,7 +2,7 @@
 module.exports = {
   reactStrictMode: true,
   images: {
-    domains: ['chromeunboxed.com', 'user-images.githubusercontent.com', 'lh3.googleusercontent.com']
+    domains: ['chromeunboxed.com', 'user-images.githubusercontent.com', 'lh3.googleusercontent.com', 'res.cloudinary.com']
   },
   experimental: {
     appDir: true,
