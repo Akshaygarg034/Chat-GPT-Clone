@@ -32,7 +32,7 @@ export default function ChatInput({
     setPromptValue,
 }: Props) {
     const { data: session } = useSession()
-    const { data: model } = useSWR('model', { fallbackData: 'text-davinci-003' })
+    const { data: model } = useSWR('model', { fallbackData: 'gemini-1.5-flash' })
 
     const [uploading, setUploading] = useState(false)
     const [imageUrl, setImageUrl] = useState<string | null>(null)
