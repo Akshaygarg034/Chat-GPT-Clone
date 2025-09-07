@@ -10,7 +10,8 @@ type Data = {
 }
 
 const freeModels: Option[] = [
-  { value: 'gemini-1.5-flash', label: 'Google Gemini 1.5 Flash' }
+  { value: 'gemini-1.5-flash', label: 'Google Gemini 1.5 Flash' },
+  { value: 'gemini-2.5-flash', label: 'Google Gemini 2.5 Flash' }
   // Add more known free or public models here as needed
 ]
 

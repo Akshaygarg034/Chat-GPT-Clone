@@ -51,7 +51,7 @@ export default async function handler(
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
   // Choose model (flash = cheaper/faster, pro = better reasoning)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   // 3) Generate response
   const result = await model.generateContent(prompt)
