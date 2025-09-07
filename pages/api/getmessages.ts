@@ -49,6 +49,7 @@ export default async function handler(
   }
 
   try {
+    await dbConnect();
     // Fetch messages filtering by userEmail and chatId
     const docs = (await Message.find({
       userEmail: session.user!.email!,
