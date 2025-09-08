@@ -3,7 +3,7 @@
 
 import { ArrowUpIcon, PaperClipIcon, XMarkIcon } from "@heroicons/react/24/outline"
 import { useSession } from 'next-auth/react'
-import { FormEvent, useRef, useState } from 'react'
+import { FormEvent, KeyboardEvent, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import useSWR from 'swr'
 
@@ -38,9 +38,24 @@ export default function ChatInput({
     const [imageUrl, setImageUrl] = useState<string | null>(null)
     const [publicId, setPublicId] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+    const handleInput = () => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto'               // Reset height to recalc scrollHeight
+            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px' // Set to scrollHeight
+        }
+    }
 
     const handlePinClick = () => {
         fileInputRef.current?.click()
+    }
+
+    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            sendMessage(e as any)
+        }
     }
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,13 +181,22 @@ export default function ChatInput({
                         onChange={handleFileChange}
                         className="hidden"
                     />
-                    <input
-                        type="text"
-                        className="bg-transparent focus:outline-none flex-1 disabled:cursor-not-allowed disabled:text-gray-400 placeholder-[#afafaf]"
+                    <textarea
+                        className="bg-transparent focus:outline-none flex-1 disabled:cursor-not-allowed disabled:text-gray-400 placeholder-[#afafaf] scrollbar-none"
                         placeholder={uploading ? 'Uploading...' : imageUrl ? 'Image attached, add text…' : 'Ask anything'}
                         value={promptValue}
-                        onChange={(e) => setPromptValue(e.target.value)}
+                        onChange={(e) => {
+                            setPromptValue(e.target.value)
+                            handleInput()
+                        }}
                         disabled={!session || uploading}
+                        onKeyDown={handleKeyDown}
+                        rows={1}
+                        style={{
+                            resize: 'none',
+                            maxHeight: '200px',
+                            overflowY: 'auto'
+                        }}
                     />
                     <button
                         type="submit"
