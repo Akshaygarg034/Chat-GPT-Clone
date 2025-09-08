@@ -80,11 +80,21 @@ export default function Chat({ chatId }: Props) {
     setPromptValue(message.text)
   }
 
+  useEffect(() => {
+    if (!newBotMessageId) return
+
+    // Clear animation flag after 5s (animation duration)
+    const timer = setTimeout(() => {
+      setNewBotMessageId(null)
+    }, 5000)
+
+    return () => clearTimeout(timer)
+  }, [newBotMessageId])
+
   return (
     <>
-      <ScrollToBottom className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-track-gray-400/20 scrollbar-thumb-[#444654]/80 hover:scrollbar-thumb-[#ACACBE]">
+      <ScrollToBottom className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#5c5b5b] hover:scrollbar-thumb-[#ACACBE]" followButtonClassName="hidden">
         {loading && <p className="mt-10 text-center text-white">Loading messages…</p>}
-
         {!loading &&
           messages.map((msg, idx) => (
             <Message
