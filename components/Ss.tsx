@@ -22,7 +22,7 @@ export default function Ss() {
   const fetcher = (url: string) =>
     fetch(url)
       .then(res => res.json())
-      .then((data: { chats: { chatId: string }[] }) => data.chats)
+      .then((data: { chats: { chatId: string; lastMessage: string }[] }) => data.chats)
 
   const { data: chats, error } = useSWR(session ? '/api/getChats' : null, fetcher)
 
@@ -66,7 +66,7 @@ export default function Ss() {
                   </div>
                 )}
                 {chats?.map(chat => (
-                  <ChatRow key={chat.chatId} id={chat.chatId} />
+                  <ChatRow key={chat.chatId} id={chat.chatId} lastMessage={chat.lastMessage} />
                 ))}
               </div>
             </div>

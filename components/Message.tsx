@@ -1,8 +1,7 @@
 'use client'
 
-import TypeIt from 'typeit-react'
 import { PencilSquareIcon, ClipboardIcon, CheckIcon } from '@heroicons/react/24/outline'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 
 type MessageType = {
   _id: string
@@ -24,55 +23,59 @@ type Props = {
   onEdit?: () => void
 }
 
-const parseMarkdown = (text: string): JSX.Element[] => {
-  const elements: JSX.Element[] = [];
-  const lines = text.split('\n');
-  
-  lines.forEach((line, index) => {
+function parseInline(text: string, lineIndex: number): (string | JSX.Element)[] {
+  const parts: (string | JSX.Element)[] = []
+  let remaining = text
+  let partKey = 0
+
+  while (remaining.includes('**')) {
+    const startIdx = remaining.indexOf('**')
+    const before = remaining.substring(0, startIdx)
+    remaining = remaining.substring(startIdx + 2)
+
+    const endIdx = remaining.indexOf('**')
+    if (endIdx === -1) {
+      parts.push(before + '**' + remaining)
+      remaining = ''
+      break
+    }
+
+    const boldText = remaining.substring(0, endIdx)
+    remaining = remaining.substring(endIdx + 2)
+
+    if (before) parts.push(before)
+    parts.push(<strong key={`b-${lineIndex}-${partKey++}`} className="font-bold">{boldText}</strong>)
+  }
+
+  if (remaining) parts.push(remaining)
+  return parts
+}
+
+function parseMarkdown(text: string): JSX.Element[] {
+  const lines = text.split('\n')
+  const elements: JSX.Element[] = []
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
     if (line.trim() === '') {
-      elements.push(<br key={`br-${index}`} />);
-      return;
+      elements.push(<br key={`br-${i}`} />)
+      continue
     }
-    
-    // Handle headers
-    if (line.startsWith('# ')) {
-      elements.push(<h1 key={`h1-${index}`} className="text-2xl font-bold my-2">{line.substring(2)}</h1>);
-      return;
+    if (line.startsWith('### ')) {
+      elements.push(<h3 key={`h-${i}`} className="text-lg font-bold my-2">{parseInline(line.substring(4), i)}</h3>)
     } else if (line.startsWith('## ')) {
-      elements.push(<h2 key={`h2-${index}`} className="text-xl font-bold my-2">{line.substring(3)}</h2>);
-      return;
-    } else if (line.startsWith('### ')) {
-      elements.push(<h3 key={`h3-${index}`} className="text-lg font-bold my-2">{line.substring(4)}</h3>);
-      return;
+      elements.push(<h2 key={`h-${i}`} className="text-xl font-bold my-2">{parseInline(line.substring(3), i)}</h2>)
+    } else if (line.startsWith('# ')) {
+      elements.push(<h1 key={`h-${i}`} className="text-2xl font-bold my-2">{parseInline(line.substring(2), i)}</h1>)
+    } else {
+      elements.push(<p key={`p-${i}`} className="my-1">{parseInline(line, i)}</p>)
     }
-    
-    // Handle bold text with **
-    const parts: (string | JSX.Element)[] = [];
-    let remaining = line;
-    
-    while (remaining.includes('**')) {
-      const before = remaining.substring(0, remaining.indexOf('**'));
-      remaining = remaining.substring(remaining.indexOf('**') + 2);
-      
-      if (remaining.includes('**')) {
-        const boldText = remaining.substring(0, remaining.indexOf('**'));
-        remaining = remaining.substring(remaining.indexOf('**') + 2);
-        
-        if (before) parts.push(before);
-        parts.push(<strong key={`strong-${index}-${parts.length}`} className="font-bold">{boldText}</strong>);
-      } else {
-        parts.push(before + '**' + remaining);
-        remaining = '';
-      }
-    }
-    
-    if (remaining) parts.push(remaining);
-    
-    elements.push(<p key={`p-${index}`} className="my-1">{parts}</p>);
-  });
-  
-  return elements;
-};
+  }
+
+  return elements
+}
+
+const IMAGE_REGEX = /\[Image:\s*(https?:\/\/[^\]]+)\]/i
 
 export default function Message({
   message,
@@ -82,8 +85,42 @@ export default function Message({
 }: Props) {
   const isChatBot = message.user.name === 'Gemini'
   const [copied, setCopied] = useState(false)
-  const imageRegex = /\[Image:\s*(https?:\/\/[^\]]+)\]/i
-  const imageMatch = message.text.match(imageRegex)
+  const imageMatch = message.text.match(IMAGE_REGEX)
+
+  // Lightweight typewriter: reveal characters progressively
+  const [displayedLen, setDisplayedLen] = useState(
+    isChatBot && isNewBotMessage ? 0 : message.text.length
+  )
+  const rafRef = useRef<number>(0)
+
+  useEffect(() => {
+    if (!isChatBot || !isNewBotMessage) {
+      setDisplayedLen(message.text.length)
+      return
+    }
+
+    setDisplayedLen(0)
+    let pos = 0
+    const textLen = message.text.length
+    const charsPerFrame = Math.max(2, Math.ceil(textLen / 200)) // adaptive speed
+
+    function tick() {
+      pos = Math.min(pos + charsPerFrame, textLen)
+      setDisplayedLen(pos)
+      if (pos < textLen) {
+        rafRef.current = requestAnimationFrame(tick)
+      }
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [message.text, isChatBot, isNewBotMessage])
+
+  const visibleText = isChatBot && isNewBotMessage
+    ? message.text.slice(0, displayedLen)
+    : message.text
+
+  const rendered = useMemo(() => parseMarkdown(visibleText), [visibleText])
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.text).then(() => {
@@ -95,7 +132,7 @@ export default function Message({
   return (
     <div className="py-3 text-white">
       <div className={`relative flex max-w-3xl my-4 mx-auto ${!isChatBot ? 'justify-end' : ''}`}>
-        <div className={`relative group ${!isChatBot ? 'max-w-[80%]' : 'w-[100%]'} flex flex-col items-start gap-3 px-5 py-2 rounded-3xl ${!isChatBot ? 'bg-[#303030]' : ''}`}>
+        <div className={`relative group ${!isChatBot ? 'max-w-[80%]' : 'w-full'} flex flex-col items-start gap-3 px-5 py-2 rounded-3xl ${!isChatBot ? 'bg-[#303030]' : ''}`}>
 
           {imageMatch && !isChatBot && canEdit ? (
             <>
@@ -104,38 +141,12 @@ export default function Message({
                 alt="query image"
                 className="max-h-56 rounded-md"
               />
-              {/* Optionally show text without image markdown */}
-             <div className="text-base mt-2">{parseMarkdown(message.text.replace(imageRegex, '').trim())}</div>
+              <div className="text-base mt-2">{parseMarkdown(message.text.replace(IMAGE_REGEX, '').trim())}</div>
             </>
-          ) : isChatBot && isNewBotMessage ? (
-            <TypeIt
-              options={{ 
-                strings: [message.text], 
-                speed: 20, 
-                waitUntilVisible: true,
-                afterComplete: function (instance: any) {
-                  instance.destroy();
-                }
-              }}
-              getBeforeInit={(instance: any) => {
-                // Format the text for TypeIt to handle basic formatting
-                const formattedText = message.text
-                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                  .replace(/\#\s(.*?)(?=\n|$)/g, '<h1 style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0;">$1</h1>')
-                  .replace(/\#\#\s(.*?)(?=\n|$)/g, '<h2 style="font-size: 1.25rem; font-weight: bold; margin: 0.5rem 0;">$1</h2>');
-                
-                instance.type(formattedText);
-                return instance;
-              }}
-            />
           ) : (
-            <p className="text-base">{parseMarkdown(message.text)}</p>
+            <div className="text-base">{rendered}</div>
           )}
 
-
-          <div className="absolute h-[200%] w-[100%] top-0 left-0"></div>
-
-          {/* Edit button, only visible for user's own messages on hover */}
           {canEdit && !isChatBot && (
             <button
               type="button"
@@ -147,11 +158,10 @@ export default function Message({
             </button>
           )}
 
-          {/* Copy icon, toggles to check icon on click */}
           <button
             type="button"
             onClick={handleCopy}
-            className={`${!isChatBot && 'invisible'} group-hover:visible absolute ${isChatBot ? 'left-4' : ' left-12'} -bottom-6 flex items-center text-gray-300 hover:text-white`}
+            className={`${!isChatBot && 'invisible'} group-hover:visible absolute ${isChatBot ? 'left-4' : 'left-12'} -bottom-6 flex items-center text-gray-300 hover:text-white`}
             title={copied ? 'Copied!' : 'Copy message'}
           >
             {copied ? (

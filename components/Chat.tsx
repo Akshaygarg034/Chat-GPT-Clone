@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import ScrollToBottom from 'react-scroll-to-bottom'
-import { ArrowDownCircleIcon } from '@heroicons/react/24/outline'
 import Message from './Message'
 import ChatInput from "./ChatInput";
 
@@ -24,70 +23,51 @@ type Props = { chatId: string }
 export default function Chat({ chatId }: Props) {
   const { data: session } = useSession()
   const [messages, setMessages] = useState<MessageType[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  // Track the ID of the last new bot message to animate typewriter for only that message
+  const [loading, setLoading] = useState(true)
   const [newBotMessageId, setNewBotMessageId] = useState<string | null>(null)
+  const [promptValue, setPromptValue] = useState('')
 
-  const [promptValue, setPromptValue] = useState<string>('')       // controlled input
-
-  // Keep ref to previous messages length so we detect new messages
-  const prevMessagesLengthRef = useRef<number>(0)
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!session || !chatId) return
 
+    let cancelled = false
+
     async function fetchMessages() {
       setLoading(true)
-      const res = await fetch('/api/getmessages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chatId }),
-      })
-      if (res.ok) {
+      try {
+        const res = await fetch('/api/getmessages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chatId }),
+        })
+        if (!res.ok || cancelled) return
         const data: { messages: MessageType[] } = await res.json()
-        // Sort by createdAt ascending
-        const sorted = data.messages.sort(
-          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        )
-        setMessages(sorted)
-        // Detect if a new bot message arrived
-        if (
-          sorted.length > prevMessagesLengthRef.current && // messages count increased
-          sorted[sorted.length - 1].user._id === 'Gemini'  // last message is bot message
-        ) {
-          setNewBotMessageId(sorted[sorted.length - 1]._id)
-        } else {
-          setNewBotMessageId(null) // no new bot message
-        }
-        prevMessagesLengthRef.current = sorted.length
+        if (cancelled) return
+        setMessages(data.messages)
+      } finally {
+        if (!cancelled) setLoading(false)
       }
-      setLoading(false)
     }
 
     fetchMessages()
+    return () => { cancelled = true }
   }, [session, chatId])
 
-  function handleUserMessage(message: MessageType) {
-    setMessages((prev) => [...prev, message])
-    // If message is from bot, set newBotMessageId to trigger animation
+  const handleUserMessage = useCallback((message: MessageType) => {
+    setMessages(prev => [...prev, message])
     if (message.user._id === 'Gemini') {
       setNewBotMessageId(message._id)
     }
-  }
+  }, [])
 
-  function handleEditRequest(message: MessageType) {
+  const handleEditRequest = useCallback((message: MessageType) => {
     setPromptValue(message.text)
-  }
+  }, [])
 
+  // Clear animation flag after typewriter finishes
   useEffect(() => {
     if (!newBotMessageId) return
-
-    // Clear animation flag after 5s (animation duration)
-    const timer = setTimeout(() => {
-      setNewBotMessageId(null)
-    }, 5000)
-
+    const timer = setTimeout(() => setNewBotMessageId(null), 5000)
     return () => clearTimeout(timer)
   }, [newBotMessageId])
 
@@ -108,7 +88,7 @@ export default function Chat({ chatId }: Props) {
           ))}
       </ScrollToBottom>
       {!loading && messages.length === 0 ? (
-        <div className='h-[100%] w-100 flex flex-col items-center justify-center'>
+        <div className='h-full w-full flex flex-col items-center justify-center'>
           <p className="text-center text-3xl text-white">What can I help with?</p>
           <ChatInput
             chatId={chatId}
@@ -118,16 +98,15 @@ export default function Chat({ chatId }: Props) {
             setPromptValue={setPromptValue}
           />
         </div>
-      ) :
-        (
-          <ChatInput
-            chatId={chatId}
-            messages={messages}
-            onMessageSent={handleUserMessage}
-            promptValue={promptValue}
-            setPromptValue={setPromptValue}
-          />
-        )}
+      ) : (
+        <ChatInput
+          chatId={chatId}
+          messages={messages}
+          onMessageSent={handleUserMessage}
+          promptValue={promptValue}
+          setPromptValue={setPromptValue}
+        />
+      )}
     </>
   )
 }

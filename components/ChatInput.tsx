@@ -35,6 +35,7 @@ export default function ChatInput({
     const { data: model } = useSWR('model', { fallbackData: 'gemini-1.5-flash' })
 
     const [uploading, setUploading] = useState(false)
+    const [sending, setSending] = useState(false)
     const [imageUrl, setImageUrl] = useState<string | null>(null)
     const [publicId, setPublicId] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -117,7 +118,7 @@ export default function ChatInput({
 
     const sendMessage = async (e: FormEvent) => {
         e.preventDefault()
-        if ((!promptValue && !imageUrl) || !session) return
+        if ((!promptValue && !imageUrl) || !session || sending) return
 
         let input = promptValue.trim()
 
@@ -142,23 +143,30 @@ export default function ChatInput({
         onMessageSent(userMessage)
         toast.loading('ChatGPT is thinking...', { id: 'thinking' })
 
-        const res = await fetch('/api/askquestion', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt: input, chatId, model, imageUrl }),
-        })
+        setSending(true)
+        try {
+            const res = await fetch('/api/askquestion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: input, chatId, model, imageUrl }),
+            })
 
-        if (res.ok) {
-            toast.dismiss('thinking')
-            const data = await res.json()
-            if (data.botMessage) {
-                onMessageSent({
-                    ...data.botMessage,
-                    createdAt: data.botMessage.createdAt || new Date().toISOString(),
-                })
+            if (res.ok) {
+                toast.dismiss('thinking')
+                const data = await res.json()
+                if (data.botMessage) {
+                    onMessageSent({
+                        ...data.botMessage,
+                        createdAt: data.botMessage.createdAt || new Date().toISOString(),
+                    })
+                }
+            } else {
+                toast.error('Something went wrong.', { id: 'thinking' })
             }
-        } else {
-            toast.error('Something went wrong.')
+        } catch {
+            toast.error('Network error.', { id: 'thinking' })
+        } finally {
+            setSending(false)
         }
     }
 
@@ -189,7 +197,7 @@ export default function ChatInput({
                             setPromptValue(e.target.value)
                             handleInput()
                         }}
-                        disabled={!session || uploading}
+                        disabled={!session || uploading || sending}
                         onKeyDown={handleKeyDown}
                         rows={1}
                         style={{
@@ -201,7 +209,7 @@ export default function ChatInput({
                     <button
                         type="submit"
                         className="bg-white text-black p-2 rounded-full disabled:bg-[#454545] disabled:text-white disabled:cursor-not-allowed"
-                        disabled={(!promptValue && !imageUrl) || !session}
+                        disabled={(!promptValue && !imageUrl) || !session || sending}
                     >
                         <ArrowUpIcon className="h-4 w-4" />
                     </button>

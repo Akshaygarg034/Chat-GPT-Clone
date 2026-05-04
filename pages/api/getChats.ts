@@ -3,10 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
 import dbConnect from "../../utils/dbConnect";
 import Chat from "../../models/Chat";
+import Message from "../../models/Message";
 
 type ChatItem = {
   chatId: string;
   createdAt: Date;
+  lastMessage: string;
 };
 
 type Data = { chats: ChatItem[] };
@@ -22,12 +24,29 @@ export default async function handler(
 
   await dbConnect();
   const docs = await Chat.find({ userEmail: session.user!.email! })
-    .sort({ createdAt: 1 })
+    .sort({ createdAt: -1 })
     .lean();
 
+  const chatIds = docs.map((d: any) => d._id.toString());
+
+  // Fetch the first user message for each chat in one aggregation
+  const firstMessages = chatIds.length > 0
+    ? await Message.aggregate([
+        { $match: { chatId: { $in: chatIds }, userEmail: session.user!.email! } },
+        { $sort: { createdAt: 1 } },
+        { $group: { _id: "$chatId", firstText: { $first: "$text" } } },
+      ])
+    : [];
+
+  const messageMap = new Map<string, string>();
+  for (const m of firstMessages) {
+    messageMap.set(m._id, m.firstText);
+  }
+
   const chats: ChatItem[] = docs.map((doc: any) => ({
-    chatId: doc._id.toString(), // ✅ use Mongo’s _id
+    chatId: doc._id.toString(),
     createdAt: doc.createdAt,
+    lastMessage: messageMap.get(doc._id.toString()) || "New Chat",
   }));
 
   res.status(200).json({ chats });

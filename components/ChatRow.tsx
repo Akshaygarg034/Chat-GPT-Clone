@@ -1,25 +1,18 @@
 // components/ChatRow.tsx
 'use client'
 
-import { ChatBubbleLeftIcon, TrashIcon } from "@heroicons/react/24/outline"
+import { TrashIcon } from "@heroicons/react/24/outline"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import useSWR from "swr"
 
-type Props = { id: string }
-
-type MessageType = {
-    _id: string
-    userEmail: string
-    chatId: string
-    text: string
-    createdAt: string
-    user: { _id: string; name: string; avatar: string }
+type Props = {
+    id: string
+    lastMessage?: string
 }
 
-export default function ChatRow({ id }: Props) {
+export default function ChatRow({ id, lastMessage = "New Chat" }: Props) {
     const pathname = usePathname()
     const router = useRouter()
     const { data: session } = useSession()
@@ -31,25 +24,6 @@ export default function ChatRow({ id }: Props) {
         }
     }, [pathname, id])
 
-    // Fetch messages for this chat
-    const fetcher = async (key: [string, string]) => {
-        const [url, chatId] = key;
-        const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ chatId }),
-        });
-        const data = await response.json();
-        return data.messages;
-    };
-
-    const shouldFetch = Boolean(session && id)
-
-    const { data: messages } = useSWR(
-        shouldFetch ? ["/api/getmessages", id] : null,
-        fetcher
-    )
-
     const deleteChat = async () => {
         if (!session) return
         await fetch("/api/deletechat", {
@@ -60,22 +34,19 @@ export default function ChatRow({ id }: Props) {
         router.replace("/")
     }
 
-    const lastMessageText = messages?.length
-        ? messages[messages.length - 1].text
-        : "New Chat"
-
-
-
     return (
         <Link
             href={`/chat/${id}`}
             className={`chatrow gap-9 justify-center ${active ? "bg-[#242424]" : ""}`}
         >
             <p className="flex-1 hidden md:inline-flex truncate">
-                {lastMessageText}
+                {lastMessage}
             </p>
             <TrashIcon
-                onClick={deleteChat}
+                onClick={(e) => {
+                    e.preventDefault()
+                    deleteChat()
+                }}
                 className="h-5 w-5 text-gray-500 hover:text-red-700 cursor-pointer"
             />
         </Link>

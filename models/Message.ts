@@ -11,4 +11,7 @@ const MessageSchema = new Schema({
   },
 });
 
+// Compound index for the most common query pattern
+MessageSchema.index({ userEmail: 1, chatId: 1, createdAt: 1 });
+
 export default models.Message || model("Message", MessageSchema);

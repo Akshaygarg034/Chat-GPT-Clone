@@ -4,7 +4,10 @@ import { authOptions } from './auth/[...nextauth]'
 import dbConnect from '../../utils/dbConnect'
 import Message from '../../models/Message'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import MemoryClient from 'mem0ai';
+import MemoryClient from 'mem0ai'
+
+// Reuse across requests instead of creating per-request
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 type MessageType = {
   _id: string
@@ -48,7 +51,6 @@ export default async function handler(
     const mem0Client = new MemoryClient({ apiKey: process.env.MEM0_API_KEY! })
     const filters = { OR: [{ user_id: chatId }] }
     const relevantMemories = await mem0Client.search(prompt, { api_version: "v2", filters })
-    console.log("relevantMemories", relevantMemories)
 
     let promptWithMemories = `User: ${prompt}\n`
     if (relevantMemories.length > 0) {
@@ -70,13 +72,8 @@ export default async function handler(
       },
     }).save()
 
-    // 2) Initialize Gemini client
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-
-    const chosenModel = 'gemini-2.5-flash'
-    console.log('Using model:', chosenModel)
-
-    const generativeModel = genAI.getGenerativeModel({ model: chosenModel })
+    // 2) Get Gemini model
+    const generativeModel = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
     const imageUrlMatch = promptWithMemories.match(/\[Image:\s*(https?:\/\/[^\]]+)\]/i)
     let contents

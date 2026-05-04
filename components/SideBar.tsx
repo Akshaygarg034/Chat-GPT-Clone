@@ -16,6 +16,7 @@ import {
 type ChatItem = {
   chatId: string
   createdAt: string
+  lastMessage: string
 }
 
 export default function SideBar() {
@@ -52,7 +53,7 @@ export default function SideBar() {
 
         <div className="flex flex-col space-y-2 my-2">
           {chats?.map((chat) => (
-            <ChatRow key={chat.chatId} id={chat.chatId} />
+            <ChatRow key={chat.chatId} id={chat.chatId} lastMessage={chat.lastMessage} />
           ))}
         </div>
       </div>

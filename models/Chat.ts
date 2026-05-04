@@ -1,8 +1,7 @@
 import { Schema, model, models } from "mongoose";
 
 const ChatSchema = new Schema({
-  chatId: { type: String, required: true },
-  userEmail: { type: String, required: true },
+  userEmail: { type: String, required: true, index: true },
   createdAt: { type: Date, default: Date.now },
 });
 
