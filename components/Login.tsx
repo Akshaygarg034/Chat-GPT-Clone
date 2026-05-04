@@ -1,7 +1,6 @@
 'use client'
 
 import { signIn } from 'next-auth/react'
-import Image from 'next/image'
 import { useState } from 'react'
 
 export default function Login() {
@@ -17,10 +16,10 @@ export default function Login() {
   }
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-[#0f0f12] via-[#1e1e2a] to-[#101018]">
+    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-[#111] via-[#1a1a1a] to-[#111]">
       {/* Decorative blurred shapes */}
-      <div className="pointer-events-none absolute -top-32 -left-24 h-72 w-72 rounded-full bg-fuchsia-500/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-cyan-500/30 blur-3xl" />
+      <div className="pointer-events-none absolute -top-32 -left-24 h-72 w-72 rounded-full bg-sky-500/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-violet-500/15 blur-3xl" />
 
       {/* Centered card */}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-4">
@@ -28,18 +27,26 @@ export default function Login() {
           {/* Brand */}
           <div className="flex flex-col items-center">
             <div className="relative mb-4">
-              <Image
-                src="https://res.cloudinary.com/dz1vsgxm5/image/upload/v1757192404/ChatGPTClone/icons8-chatgpt-100_l7tpts.png"
-                alt="ChatGPT logo"
-                width={88}
-                height={88}
-                priority
-                className="drop-shadow-[0_6px_20px_rgba(0,0,0,0.25)]"
-              />
+              <svg width="80" height="80" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="loginGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#0EA5E9"/><stop offset="100%" stopColor="#8B5CF6"/></linearGradient>
+                  <filter id="loginGlow"><feGaussianBlur stdDeviation="4" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                </defs>
+                <circle cx="110" cy="110" r="90" fill="none" stroke="url(#loginGrad)" strokeWidth="4" opacity="0.3"/>
+                <circle cx="110" cy="110" r="28" fill="url(#loginGrad)" filter="url(#loginGlow)"/>
+                <g stroke="url(#loginGrad)" strokeWidth="3" strokeLinecap="round">
+                  <line x1="110" y1="82" x2="110" y2="50"/><line x1="138" y1="110" x2="170" y2="110"/><line x1="110" y1="138" x2="110" y2="170"/><line x1="82" y1="110" x2="50" y2="110"/>
+                  <line x1="130" y1="90" x2="155" y2="65"/><line x1="130" y1="130" x2="155" y2="155"/><line x1="90" y1="130" x2="65" y2="155"/><line x1="90" y1="90" x2="65" y2="65"/>
+                </g>
+                <g fill="url(#loginGrad)">
+                  <circle cx="110" cy="45" r="6"/><circle cx="175" cy="110" r="6"/><circle cx="110" cy="175" r="6"/><circle cx="45" cy="110" r="6"/>
+                  <circle cx="160" cy="60" r="5"/><circle cx="160" cy="160" r="5"/><circle cx="60" cy="160" r="5"/><circle cx="60" cy="60" r="5"/>
+                </g>
+              </svg>
             </div>
-            <h1 className="text-2xl font-semibold text-white">Welcome</h1>
-            <p className="mt-1 text-sm text-gray-300">
-              Sign in to continue to your workspace
+            <h1 className="text-2xl font-semibold text-white">LLM Chat Bot</h1>
+            <p className="mt-1 text-sm text-[#888]">
+              Sign in to start chatting
             </p>
           </div>
 
@@ -48,7 +55,7 @@ export default function Login() {
             <button
               onClick={handleGoogle}
               disabled={loading}
-              className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-4 py-3 font-medium text-gray-900 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 disabled:opacity-60"
+              className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-white px-4 py-3 font-medium text-gray-900 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-sky-400 disabled:opacity-60"
             >
               {/* Google icon */}
               <span className="inline-flex h-5 w-5 items-center justify-center rounded">
@@ -63,7 +70,7 @@ export default function Login() {
           </div>
 
           {/* Terms */}
-          <p className="mt-6 text-center text-xs text-white/50">
+          <p className="mt-6 text-center text-xs text-white/40">
             By continuing, you agree to our Terms and Privacy Policy.
           </p>
         </div>

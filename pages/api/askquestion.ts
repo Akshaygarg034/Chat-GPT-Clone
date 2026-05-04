@@ -131,6 +131,19 @@ export default async function handler(
     res.status(200).json({ answer: botMessage.text, botMessage })
   } catch (error: any) {
     console.error('Error in chat handler:', error)
-    res.status(500).json({ error: 'Internal server error' })
+
+    let userMessage = 'Something went wrong. Please try again.'
+
+    if (error?.message?.includes('503') || error?.message?.includes('high demand')) {
+      userMessage = 'The model is experiencing high demand right now. Please try again in a moment.'
+    } else if (error?.message?.includes('429') || error?.message?.includes('quota')) {
+      userMessage = 'Rate limit exceeded. Please wait a moment and try again.'
+    } else if (error?.message?.includes('400')) {
+      userMessage = 'The request was invalid. Please try rephrasing your message.'
+    } else if (error?.message?.includes('SAFETY')) {
+      userMessage = 'The response was blocked due to safety filters. Please rephrase your message.'
+    }
+
+    res.status(500).json({ error: userMessage })
   }
 }

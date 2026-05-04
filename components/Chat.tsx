@@ -73,8 +73,8 @@ export default function Chat({ chatId }: Props) {
 
   return (
     <>
-      <ScrollToBottom className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#5c5b5b] hover:scrollbar-thumb-[#ACACBE]" followButtonClassName="hidden">
-        {loading && <p className="mt-10 text-center text-white">Loading messages…</p>}
+      <ScrollToBottom className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[#424242] hover:scrollbar-thumb-[#616161]" followButtonClassName="hidden">
+        {loading && <p className="mt-10 text-center text-[#888]">Loading messages…</p>}
         {!loading &&
           messages.map((msg, idx) => (
             <Message

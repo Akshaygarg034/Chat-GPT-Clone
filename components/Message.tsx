@@ -54,21 +54,29 @@ function parseInline(text: string, lineIndex: number): (string | JSX.Element)[] 
 function parseMarkdown(text: string): JSX.Element[] {
   const lines = text.split('\n')
   const elements: JSX.Element[] = []
+  let consecutiveBlanks = 0
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     if (line.trim() === '') {
-      elements.push(<br key={`br-${i}`} />)
+      consecutiveBlanks++
+      // Collapse multiple blank lines into one
+      if (consecutiveBlanks <= 1) {
+        elements.push(<br key={`br-${i}`} />)
+      }
       continue
     }
+    consecutiveBlanks = 0
     if (line.startsWith('### ')) {
-      elements.push(<h3 key={`h-${i}`} className="text-lg font-bold my-2">{parseInline(line.substring(4), i)}</h3>)
+      elements.push(<h3 key={`h-${i}`} className="text-lg font-bold mt-3 mb-1">{parseInline(line.substring(4), i)}</h3>)
     } else if (line.startsWith('## ')) {
-      elements.push(<h2 key={`h-${i}`} className="text-xl font-bold my-2">{parseInline(line.substring(3), i)}</h2>)
+      elements.push(<h2 key={`h-${i}`} className="text-xl font-bold mt-3 mb-1">{parseInline(line.substring(3), i)}</h2>)
     } else if (line.startsWith('# ')) {
-      elements.push(<h1 key={`h-${i}`} className="text-2xl font-bold my-2">{parseInline(line.substring(2), i)}</h1>)
+      elements.push(<h1 key={`h-${i}`} className="text-2xl font-bold mt-3 mb-1">{parseInline(line.substring(2), i)}</h1>)
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      elements.push(<li key={`li-${i}`} className="ml-4 list-disc">{parseInline(line.substring(2), i)}</li>)
     } else {
-      elements.push(<p key={`p-${i}`} className="my-1">{parseInline(line, i)}</p>)
+      elements.push(<p key={`p-${i}`} className="leading-relaxed">{parseInline(line, i)}</p>)
     }
   }
 
@@ -84,6 +92,7 @@ export default function Message({
   onEdit,
 }: Props) {
   const isChatBot = message.user.name === 'Gemini'
+  const isError = (message as any).isError
   const [copied, setCopied] = useState(false)
   const imageMatch = message.text.match(IMAGE_REGEX)
 
@@ -130,9 +139,12 @@ export default function Message({
   }
 
   return (
-    <div className="py-3 text-white">
-      <div className={`relative flex max-w-3xl my-4 mx-auto ${!isChatBot ? 'justify-end' : ''}`}>
-        <div className={`relative group ${!isChatBot ? 'max-w-[80%]' : 'w-full'} flex flex-col items-start gap-3 px-5 py-2 rounded-3xl ${!isChatBot ? 'bg-[#303030]' : ''}`}>
+    <div className="py-2 text-[#ececec]">
+      <div className={`relative flex max-w-3xl my-2 mx-auto ${!isChatBot ? 'justify-end' : ''}`}>
+        <div className={`relative group ${!isChatBot ? 'max-w-[80%]' : 'w-full'} flex flex-col items-start gap-2 px-5 pt-2 pb-8 rounded-3xl ${
+          isError ? 'bg-red-900/30 border border-red-800/50' :
+          !isChatBot ? 'bg-[#2f2f2f]' : ''
+        }`}>
 
           {imageMatch && !isChatBot && canEdit ? (
             <>
@@ -147,29 +159,31 @@ export default function Message({
             <div className="text-base">{rendered}</div>
           )}
 
-          {canEdit && !isChatBot && (
+          <div className="absolute bottom-1.5 left-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {canEdit && !isChatBot && (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="flex items-center text-xs text-[#888] hover:text-white"
+                title="Edit message"
+              >
+                <PencilSquareIcon className="h-4 w-4" />
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={onEdit}
-              className="invisible group-hover:visible absolute left-3 -bottom-6 flex items-center text-xs text-gray-300 hover:text-white"
-              title="Edit message"
+              onClick={handleCopy}
+              className="flex items-center text-[#888] hover:text-white"
+              title={copied ? 'Copied!' : 'Copy message'}
             >
-              <PencilSquareIcon className="h-4 w-4" />
+              {copied ? (
+                <CheckIcon className="h-4 w-4" />
+              ) : (
+                <ClipboardIcon className="h-4 w-4" />
+              )}
             </button>
-          )}
-
-          <button
-            type="button"
-            onClick={handleCopy}
-            className={`${!isChatBot && 'invisible'} group-hover:visible absolute ${isChatBot ? 'left-4' : 'left-12'} -bottom-6 flex items-center text-gray-300 hover:text-white`}
-            title={copied ? 'Copied!' : 'Copy message'}
-          >
-            {copied ? (
-              <CheckIcon className="h-4 w-4" />
-            ) : (
-              <ClipboardIcon className="h-4 w-4" />
-            )}
-          </button>
+          </div>
         </div>
       </div>
     </div>

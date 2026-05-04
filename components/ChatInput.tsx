@@ -5,7 +5,7 @@ import { ArrowUpIcon, PaperClipIcon, XMarkIcon } from "@heroicons/react/24/outli
 import { useSession } from 'next-auth/react'
 import { FormEvent, KeyboardEvent, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
-import useSWR from 'swr'
+import useSWR, { useSWRConfig } from 'swr'
 
 type MessageType = {
     _id: string
@@ -32,7 +32,8 @@ export default function ChatInput({
     setPromptValue,
 }: Props) {
     const { data: session } = useSession()
-    const { data: model } = useSWR('model', { fallbackData: 'gemini-1.5-flash' })
+    const { data: model } = useSWR('model', { fallbackData: 'gemini-2.5-flash' })
+    const { mutate } = useSWRConfig()
 
     const [uploading, setUploading] = useState(false)
     const [sending, setSending] = useState(false)
@@ -141,7 +142,7 @@ export default function ChatInput({
             user: { _id: session.user!.email!, name: session.user!.name! },
         }
         onMessageSent(userMessage)
-        toast.loading('ChatGPT is thinking...', { id: 'thinking' })
+        toast.loading('Thinking...', { id: 'thinking' })
 
         setSending(true)
         try {
@@ -151,8 +152,9 @@ export default function ChatInput({
                 body: JSON.stringify({ prompt: input, chatId, model, imageUrl }),
             })
 
+            toast.dismiss('thinking')
+
             if (res.ok) {
-                toast.dismiss('thinking')
                 const data = await res.json()
                 if (data.botMessage) {
                     onMessageSent({
@@ -160,11 +162,38 @@ export default function ChatInput({
                         createdAt: data.botMessage.createdAt || new Date().toISOString(),
                     })
                 }
+                // Update sidebar to reflect latest message
+                mutate('/api/getChats')
             } else {
-                toast.error('Something went wrong.', { id: 'thinking' })
+                let errorText = 'Something went wrong. Please try again.'
+                try {
+                    const errData = await res.json()
+                    if (errData.error) errorText = errData.error
+                } catch {}
+                toast.error(errorText, { duration: 5000 })
+                // Show error inline as a bot message
+                onMessageSent({
+                    _id: 'error-' + Date.now(),
+                    userEmail: '',
+                    chatId,
+                    text: `⚠️ ${errorText}`,
+                    createdAt: new Date().toISOString(),
+                    user: { _id: 'Gemini', name: 'Gemini' },
+                    isError: true,
+                })
             }
         } catch {
-            toast.error('Network error.', { id: 'thinking' })
+            toast.dismiss('thinking')
+            toast.error('Network error. Check your connection.', { duration: 5000 })
+            onMessageSent({
+                _id: 'error-' + Date.now(),
+                userEmail: '',
+                chatId,
+                text: '⚠️ Network error. Check your connection and try again.',
+                createdAt: new Date().toISOString(),
+                user: { _id: 'Gemini', name: 'Gemini' },
+                isError: true,
+            })
         } finally {
             setSending(false)
         }
@@ -172,13 +201,14 @@ export default function ChatInput({
 
     return (
         <div className="flex flex-col p-4 md:p-0 items-center w-full">
-            <div className="bg-[#303030] text-white rounded-3xl w-full lg:max-w-3xl mt-10 mb-3">
+            <div className="bg-[#2f2f2f] text-[#ececec] rounded-3xl w-full lg:max-w-3xl mt-10 mb-3 border border-[#424242]/50">
                 <form onSubmit={sendMessage} className="flex items-center space-x-3 p-3 px-3">
                     <button
                         type="button"
                         onClick={handlePinClick}
                         disabled={uploading}
-                        className="p-2 text-[#afafaf] hover:text-white hover:bg-[#454545] rounded-full"
+                        className="p-2 text-[#999] hover:text-white hover:bg-[#424242] rounded-full transition-colors"
+                        title="Attach image"
                     >
                         <PaperClipIcon className="h-5 w-5 -rotate-45" />
                     </button>
@@ -190,7 +220,7 @@ export default function ChatInput({
                         className="hidden"
                     />
                     <textarea
-                        className="bg-transparent focus:outline-none flex-1 disabled:cursor-not-allowed disabled:text-gray-400 placeholder-[#afafaf] scrollbar-none"
+                        className="bg-transparent focus:outline-none flex-1 disabled:cursor-not-allowed disabled:text-[#666] placeholder-[#888] scrollbar-none text-[#ececec]"
                         placeholder={uploading ? 'Uploading...' : imageUrl ? 'Image attached, add text…' : 'Ask anything'}
                         value={promptValue}
                         onChange={(e) => {
@@ -208,7 +238,7 @@ export default function ChatInput({
                     />
                     <button
                         type="submit"
-                        className="bg-white text-black p-2 rounded-full disabled:bg-[#454545] disabled:text-white disabled:cursor-not-allowed"
+                        className="bg-white text-black p-2 rounded-full hover:bg-gray-200 transition-colors disabled:bg-[#424242] disabled:text-[#666] disabled:cursor-not-allowed"
                         disabled={(!promptValue && !imageUrl) || !session || sending}
                     >
                         <ArrowUpIcon className="h-4 w-4" />
@@ -232,8 +262,8 @@ export default function ChatInput({
             </div>
 
             {messages && messages.length > 0 && (
-                <h1 className="w-full text-center text-xs mb-5 text-white">
-                    ChatGPT can make mistakes. Check important info. See <span className="underline">Cookie Preferences.</span>
+                <h1 className="w-full text-center text-xs mb-5 text-[#888]">
+                    LLM Chat Bot can make mistakes. Check important info.
                 </h1>
             )}
         </div>

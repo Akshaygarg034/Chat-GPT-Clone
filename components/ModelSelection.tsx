@@ -1,6 +1,6 @@
 'use client'
 import useSWR from 'swr'
-import Select from 'react-select'
+import Select, { components } from 'react-select'
 
 const fetchModels = () => fetch('/api/getEngines').then(res => res.json())
 
@@ -9,23 +9,38 @@ function ModelSelection() {
     const { data: model, mutate: setModel } = useSWR('model')
 
     const onChange = (selected: any) => {
+        if (selected?.isDisabled) return
         setModel(selected.value)
     }
 
-    // derive current selected model: either stored in SWR, or first one from API
     const currentModel = model || models?.modelOptions?.[0]?.value
+
+    const CustomOption = (props: any) => {
+        const { data } = props
+        return (
+            <components.Option {...props}>
+                <div className="flex items-center justify-between w-full">
+                    <span>{data.label}</span>
+                    {data.isDisabled && (
+                        <span className="text-[10px] font-medium bg-[#3a3a3a] text-[#888] px-1.5 py-0.5 rounded ml-2">
+                            COMING SOON
+                        </span>
+                    )}
+                </div>
+            </components.Option>
+        )
+    }
 
     return (
         <div className="mt-2">
             <Select
                 className="mt-2"
                 options={models?.modelOptions}
-                isSearchable
+                isSearchable={false}
                 isLoading={isLoading}
                 menuPosition="fixed"
-                classNames={{
-                    control: () => "bg-[#202022] border-[#434654]",
-                }}
+                isOptionDisabled={(option: any) => option.isDisabled}
+                components={{ Option: CustomOption }}
                 value={
                     models?.modelOptions?.find((m: any) => m.value === currentModel) ||
                     null
@@ -34,17 +49,17 @@ function ModelSelection() {
                 styles={{
                     control: (base) => ({
                         ...base,
-                        backgroundColor: "#202022",
-                        borderColor: "#434654",
+                        backgroundColor: "#2f2f2f",
+                        borderColor: "#424242",
                         minHeight: "40px",
                         boxShadow: "none",
                         "&:hover": {
-                            borderColor: "#434654",
+                            borderColor: "#555",
                         },
                     }),
                     placeholder: (base) => ({
                         ...base,
-                        color: "#8e8e8e",
+                        color: "#888",
                     }),
                     singleValue: (base) => ({
                         ...base,
@@ -52,37 +67,27 @@ function ModelSelection() {
                     }),
                     menu: (base) => ({
                         ...base,
-                        backgroundColor: "#242424",
-                        border: "1px solid #434654",
+                        backgroundColor: "#2f2f2f",
+                        border: "1px solid #424242",
                         zIndex: 50,
                     }),
                     menuList: (base) => ({
                         ...base,
                         maxHeight: "200px",
                         overflowY: "auto",
-                        // thin scrollbar styles
-                        scrollbarWidth: "thin", // Firefox
-                        scrollbarColor: "#434654 transparent", // Firefox (thumb + track)
-                        "&::-webkit-scrollbar": {
-                            width: "6px", // thin width
-                        },
-                        "&::-webkit-scrollbar-thumb": {
-                            backgroundColor: "#434654", // dark gray thumb
-                            borderRadius: "4px",
-                        },
-                        "&::-webkit-scrollbar-track": {
-                            background: "transparent", // no background track
-                        },
+                        scrollbarWidth: "thin",
+                        scrollbarColor: "#424242 transparent",
                     }),
                     option: (base, state) => ({
                         ...base,
-                        backgroundColor: state.isFocused ? "#333333" : "transparent",
-                        color: "#e5e5e5",
-                        cursor: "pointer",
+                        backgroundColor: state.isFocused ? "#3a3a3a" : "transparent",
+                        color: state.isDisabled ? "#666" : "#e5e5e5",
+                        cursor: state.isDisabled ? "not-allowed" : "pointer",
+                        opacity: state.isDisabled ? 0.6 : 1,
                     }),
                     dropdownIndicator: (base) => ({
                         ...base,
-                        color: "#8e8e8e",
+                        color: "#888",
                         "&:hover": {
                             color: "#e5e5e5",
                         },
@@ -93,7 +98,6 @@ function ModelSelection() {
                 }}
                 onChange={onChange}
             />
-
         </div>
     )
 }

@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 type Option = {
   value: string
   label: string
+  isDisabled?: boolean
 }
 
 type Data = {
@@ -10,9 +11,10 @@ type Data = {
 }
 
 const freeModels: Option[] = [
-  { value: 'gemini-2.5-flash', label: 'Google Gemini 2.5 Flash' },
-  { value: 'gemini-1.5-flash', label: 'Google Gemini 1.5 Flash' }
-  // Add more known free or public models here as needed
+  { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+  { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', isDisabled: true },
+  { value: 'claude-opus-4.7', label: 'Claude Opus 4.7', isDisabled: true },
+  { value: 'claude-sonnet', label: 'Claude Sonnet 4.6', isDisabled: true },
 ]
 
 export default async function handler(

@@ -10,8 +10,6 @@ import useSWR from 'swr'
 import { useState } from 'react'
 import {
   ArrowRightOnRectangleIcon,
-  GiftIcon,
-  ArrowTopRightOnSquareIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline'
 
@@ -43,25 +41,25 @@ export default function Ss() {
           >
             <path
               d="M0 8.4H20V5.6H0V8.4ZM0 14H20V11.2H0V14ZM0 2.8H20V0H0V2.8Z"
-              fill="#808191"
+              fill="#999"
             />
           </svg>
         </div>
 
         <div
-          className={`flex flex-col absolute right-0 left-0 z-10 shadow-secondary py-4 bg-[#202022] max-w-xs  h-screen overflow-y-auto md:min-w-[20rem] ${
+          className={`flex flex-col absolute right-0 left-0 z-10 shadow-secondary py-4 bg-[#171717] max-w-xs h-screen overflow-y-auto md:min-w-[20rem] ${
             !toggleDrawer ? '-translate-x-[100vh]' : 'translate-x-0'
           } transition-all duration-700`}
         >
           <div className="p-2 flex flex-col flex-1">
             <div className="flex-1">
               <NewChat />
-              <div className="hidden sm:inline">
+              <div className="sm:inline">
                 <ModelSelection />
               </div>
-              <div className="flex flex-col space-y-2 my-2">
+              <div className="flex flex-col space-y-1 my-2">
                 {!chats && !error && (
-                  <div className="animate-pulse text-center text-white">
+                  <div className="animate-pulse text-center text-[#888]">
                     Loading Chats...
                   </div>
                 )}
@@ -71,31 +69,28 @@ export default function Ss() {
               </div>
             </div>
 
-            {session && (
-              <img
-                onClick={() => signOut()}
-                src={session.user?.image!}
-                alt="Profile Pic"
-                className="hidden h-12 w-12 rounded-full cursor-pointer mx-auto mb-2 hover:opacity-50"
-              />
-            )}
-
-            <hr className="mb-2" />
+            <hr className="mb-2 border-[#2f2f2f]" />
 
             <div className="mb-2">
-              <a href="https://github.com/Ash1shh/ChatGPT" target="_blank">
-                <div className="chatrow justify-start">
-                  <GiftIcon className="h-5 w-5" />
-                  <p>Source Code</p>
+              {session && (
+                <div className="chatrow justify-start select-none">
+                  {session.user?.image ? (
+                    <img
+                      src={session.user.image}
+                      alt={session.user?.name || 'User avatar'}
+                      className="h-7 w-7 rounded-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="h-7 w-7 rounded-full bg-sky-600 flex items-center justify-center text-[11px] font-semibold text-white">
+                      {(session.user?.name || session.user?.email || 'U')
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </div>
+                  )}
+                  <p className="truncate">{session.user?.name || session.user?.email}</p>
                 </div>
-              </a>
-
-              <a href="https://github.com/Ash1shh/ChatGPT/issues" target="_blank">
-                <div className="chatrow justify-start">
-                  <ArrowTopRightOnSquareIcon className="h-5 w-5" />
-                  <p>Updates & FAQ</p>
-                </div>
-              </a>
+              )}
 
               <div onClick={() => signOut()} className="chatrow justify-start cursor-pointer">
                 <ArrowRightOnRectangleIcon className="h-5 w-5" />
@@ -106,7 +101,7 @@ export default function Ss() {
         </div>
 
         <div
-          className={`flex flex-1 md:hidden absolute right-36 border-white border ${
+          className={`flex flex-1 md:hidden absolute right-36 border-[#424242] border ${
             !toggleDrawer ? '-translate-x-[100vh]' : 'translate-x-0'
           } transition-all duration-700`}
         >
