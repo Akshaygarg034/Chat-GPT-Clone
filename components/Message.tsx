@@ -141,25 +141,27 @@ export default function Message({
   return (
     <div className="py-2 text-[#ececec]">
       <div className={`relative flex max-w-3xl my-2 mx-auto ${!isChatBot ? 'justify-end' : ''}`}>
-        <div className={`relative group ${!isChatBot ? 'max-w-[80%]' : 'w-full'} flex flex-col items-start gap-2 px-5 pt-2 pb-8 rounded-3xl ${
-          isError ? 'bg-red-900/30 border border-red-800/50' :
-          !isChatBot ? 'bg-[#2f2f2f]' : ''
-        }`}>
+        <div className={`relative group ${!isChatBot ? 'max-w-[80%] pb-7' : 'w-full pb-7'}`}>
+          <div className={`relative flex flex-col items-start gap-2 px-5 py-2 rounded-3xl ${
+            isError ? 'bg-red-900/30 border border-red-800/50' :
+            !isChatBot ? 'bg-[#2f2f2f]' : ''
+          }`}>
 
-          {imageMatch && !isChatBot && canEdit ? (
-            <>
-              <img
-                src={imageMatch[1]}
-                alt="query image"
-                className="max-h-56 rounded-md"
-              />
-              <div className="text-base mt-2">{parseMarkdown(message.text.replace(IMAGE_REGEX, '').trim())}</div>
-            </>
-          ) : (
-            <div className="text-base">{rendered}</div>
-          )}
+            {imageMatch && !isChatBot && canEdit ? (
+              <>
+                <img
+                  src={imageMatch[1]}
+                  alt="query image"
+                  className="max-h-56 rounded-md"
+                />
+                <div className="text-base mt-2">{parseMarkdown(message.text.replace(IMAGE_REGEX, '').trim())}</div>
+              </>
+            ) : (
+              <div className="text-base">{rendered}</div>
+            )}
+          </div>
 
-          <div className="absolute bottom-1.5 left-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute left-4 -bottom-0.5 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
             {canEdit && !isChatBot && (
               <button
                 type="button"

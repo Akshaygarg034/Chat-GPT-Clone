@@ -1,38 +1,40 @@
-# ChatGPT-Clone: Next.js Chat Application
+# LLM Chat Bot
 
-A modern, responsive ChatGPT-style chat application built with Next.js, NextAuth, MongoDB (Mongoose), Tailwind and Cloudinary. It supports authenticated chat sessions, per-chat message history, and clean client-side navigation with optimistic UX.
+A production-ready full-stack AI chat application powered by LLM, built for low-latency conversations, persistent memory, and multimodal understanding.
 
-## Overview
+Unlike basic chatbots, it integrates **Mem0** as a long-term memory layer, enabling more personalized, context-aware interactions across sessions.
 
-This app lets authenticated users create chats, view their message history, and continue conversations with a seamless UI. Each chat has a stable identifier, and messages are scoped to both the chat and the signed-in user to ensure privacy and data isolation.
+Built with **Next.js**, **MongoDB**, **Tailwind CSS**, and **Cloudinary**, it delivers a modern, responsive experience inspired by ChatGPT and Gemini.
 
 ## Live Demo
 
-You can view the live application at [ChatGPT-Clone](https://akshay-chat-gpt-clone.vercel.app/)
+You can view the live application at [LLM Chat Bot](https://akshay-chat-gpt-clone.vercel.app/)
 
 ## Features
 
-- **Responsive UI**:  Optimized for desktop and mobile with a minimal, accessible layout.
-- **Authentication**:  Secure sign-in via NextAuth; sessions protect all chat APIs.
-- **Memory Capability**: Integrated **Mem0** for conversational memory, allowing the bot to recall past interactions for a more personalized and context-aware experience.
-- **Per-Chat History**:  Messages are stored by chat and user; list items preview the last message.
-- **Create/Delete Chats**:  Create chats client-side and navigate immediately; delete with cleanup of associated messages.
-- **Edit previous messages**:  Supports editing sent messages with server-side validation and updated timestamps to correct or refine content after sending
+- **Conversation Memory**: Integrated **Mem0** for conversational memory, allowing the bot to recall past interactions for a more personalized and context-aware experience.
+- **Multimodal (Image Upload)**: Upload images via Cloudinary and ask questions about them — LLM analyzes them using its vision capabilities.
+- **Typewriter Effect**: Bot responses animate in character-by-character for a natural, streaming feel.
+- **Authentication**: Secure sign-in via NextAuth with Google OAuth; all chat APIs are session-protected.
+- **Per-Chat History**: Messages are stored by chat and user; sidebar previews the last message of each chat.
+- **Create/Delete Chats**: Create chats client-side and navigate immediately; delete with cleanup of associated messages.
+- **Edit Previous Messages**: Supports editing sent messages to correct or refine prompts after sending.
+- **LLM used**:  Gemini 2.5 Flash (Fast, high-quality AI responses powered by Google's latest model).
+- **Responsive UI**: Optimized for desktop and mobile with a slide-out drawer sidebar.
 
 ## Screenshots
-### Login Page
 
-![CoolChat Screenshot](https://res.cloudinary.com/dz1vsgxm5/image/upload/v1757269523/ChatGPTClone/Screenshot_2025-09-07_230056_tbljkw.png)
-
-### Chat Interface
-
-![Login Screenshot](https://res.cloudinary.com/dz1vsgxm5/image/upload/v1757269546/ChatGPTClone/Screenshot_2025-09-07_230150_hdhnl8.png)
+| Login Page | Chat Interface |
+|:----------:|:--------------:|
+| ![Login](https://res.cloudinary.com/dz1vsgxm5/image/upload/v1777923636/ChatGPTClone/Screenshot_2026-05-05_010928_dajfq7.png) | ![Chat](https://res.cloudinary.com/dz1vsgxm5/image/upload/v1777923636/ChatGPTClone/Screenshot_2026-05-05_010913_wfoivr.png) |
 
 ## Technologies Used
 
 - **Framework**: Next.js
 
 - **Language**: TypeScript
+
+- **LLM**: Google Gemini 2.5 Flash
 
 - **Memory** : Mem0
 
@@ -45,6 +47,43 @@ You can view the live application at [ChatGPT-Clone](https://akshay-chat-gpt-clo
 - **Authentication**: Next-Auth
 
 - **Deployment**: Vercel
+
+## Architecture
+
+```
+┌──────────────────────┐
+│   Frontend (Next.js) │
+│   React + Tailwind   │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  API Routes (Next.js)│
+│   Server-side logic  │
+└──────────┬───────────┘
+           │
+     ┌─────┴─────┐
+     ▼           ▼
+┌─────────┐ ┌─────────┐
+│ Gemini  │ │  Mem0   │
+│  API    │ │ Memory  │
+│ (LLM)  │ │  Layer  │
+└────┬────┘ └────┬────┘
+     │           │
+     └─────┬─────┘
+           ▼
+┌──────────────────────┐
+│   MongoDB (Chats &   │
+│   Message Persistence│
+│       via Mongoose)  │
+└──────────────────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Cloudinary (Image    │
+│    Upload & Storage) │
+└──────────────────────┘
+```
 
 ## Installation
 
@@ -90,6 +129,9 @@ To run this project locally, follow these steps:
 
         CLOUDINARY_API_SECRET = your-cloudinary-api-secret
         CLOUDINARY_API_KEY = your-cloudinary-api-key
+
+        # Mem0 Keys
+        MEM0_API_KEY = your-mem0-api-key
     ```
 
 5. Start the Next.js app:
