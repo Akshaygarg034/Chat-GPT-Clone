@@ -14,6 +14,7 @@ You can view the live application at [ChatGPT-Clone](https://akshay-chat-gpt-clo
 
 - **Responsive UI**:  Optimized for desktop and mobile with a minimal, accessible layout.
 - **Authentication**:  Secure sign-in via NextAuth; sessions protect all chat APIs.
+- **Memory Capability**: Integrated **Mem0** for conversational memory, allowing the bot to recall past interactions for a more personalized and context-aware experience.
 - **Per-Chat History**:  Messages are stored by chat and user; list items preview the last message.
 - **Create/Delete Chats**:  Create chats client-side and navigate immediately; delete with cleanup of associated messages.
 - **Edit previous messages**:  Supports editing sent messages with server-side validation and updated timestamps to correct or refine content after sending
@@ -32,6 +33,8 @@ You can view the live application at [ChatGPT-Clone](https://akshay-chat-gpt-clo
 - **Framework**: Next.js
 
 - **Language**: TypeScript
+
+- **Memory** : Mem0
 
 - **Styling**: TailwindCSS
 
